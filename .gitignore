@@ -1,0 +1,18 @@
+# 根目录级别的文件（如果将来添加）
+# 主要用于忽略根目录可能添加的配置文件
+
+# Environment variables (根目录级别，如果有的话)
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE (根目录级别)
+.vscode/
+.idea/
+
+# 临时文件
+*.tmp
+*.log
