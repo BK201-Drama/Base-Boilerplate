@@ -16,8 +16,7 @@ import '@refinedev/antd/dist/reset.css';
 import { useTranslation } from 'react-i18next';
 import './i18n';
 
-import { dataProvider } from './providers/dataProvider';
-import { authProvider } from './providers/authProvider';
+import { dataProvider, authProvider } from './providers';
 import { Layout } from './components/layout';
 import { Login } from './pages/login';
 import { Dashboard } from './pages/dashboard';

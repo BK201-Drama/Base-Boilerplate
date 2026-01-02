@@ -11,8 +11,8 @@
 
 import { useCallback } from 'react';
 import { useCustom } from '@refinedev/core';
-import type { StatisticsService } from '@/types/services';
-import type { Statistics } from '@/types';
+import type { StatisticsService } from '@/types/statistics.types';
+import type { Statistics } from '@/types/statistics.types';
 
 /**
  * 使用统计数据的服务 Hook

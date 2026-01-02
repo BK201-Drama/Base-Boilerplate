@@ -8,7 +8,7 @@
 
 import { useGetIdentity, useLogout } from '@refinedev/core';
 import { useCallback } from 'react';
-import type { UserService } from '@/types/services';
+import type { UserService } from '@/types/user.types';
 
 /**
  * 使用 Refine 的用户服务 Hook

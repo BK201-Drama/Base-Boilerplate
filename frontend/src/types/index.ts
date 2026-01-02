@@ -5,26 +5,7 @@
  * 展示层不应该直接导入 services，只应该导入 types
  */
 
-// 用户相关类型
-export interface User {
-  id: string | number;
-  name?: string;
-  username?: string;
-  nickname?: string;
-  email?: string;
-  avatar?: string;
-  [key: string]: any;
-}
-
-// 统计数据类型
-export interface Statistics {
-  totalUsers?: number;
-  totalRoles?: number;
-  totalPermissions?: number;
-  operationLogs?: number;
-  [key: string]: any;
-}
-
+// 公共类型
 // API 响应类型
 export interface ApiResponse<T = any> {
   data: T;
@@ -52,3 +33,16 @@ export interface FilterParams {
   value: any;
 }
 
+// Repository 公共接口
+export interface IPublicRepository {
+  // 通用 CRUD 方法
+  get: (url: string, config?: any) => Promise<any>;
+  post: (url: string, data?: any, config?: any) => Promise<any>;
+  patch: (url: string, data?: any, config?: any) => Promise<any>;
+  delete: (url: string, config?: any) => Promise<any>;
+  request: (config: any) => Promise<any>;
+}
+
+// 重新导出所有类型
+export type { User, UserService } from './user.types';
+export type { Statistics, StatisticsService } from './statistics.types';

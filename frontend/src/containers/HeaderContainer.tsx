@@ -9,7 +9,7 @@
  * 4. 处理展示层组件的交互回调
  */
 
-import { HeaderPresenter } from '@/components/layout/header.presenter';
+import { HeaderPresenter } from '@/components/layout/header';
 import { useRefineUserService } from '@/services';
 
 export const HeaderContainer = () => {
