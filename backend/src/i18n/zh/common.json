@@ -1,0 +1,7 @@
+{
+  "insufficient_permissions": "权限不足",
+  "file_type_not_supported": "不支持的文件类型",
+  "import_success": "导入成功",
+  "operation_log_failed": "操作日志记录失败"
+}
+

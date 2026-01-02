@@ -1,10 +1,14 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { I18nService } from 'nestjs-i18n';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private i18n: I18nService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
@@ -18,7 +22,7 @@ export class PermissionsGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
     if (!user || !user.roles) {
-      throw new ForbiddenException('权限不足');
+      throw new ForbiddenException(this.i18n.t('common.insufficient_permissions'));
     }
 
     // 获取用户所有权限
@@ -32,7 +36,7 @@ export class PermissionsGuard implements CanActivate {
     );
 
     if (!hasPermission) {
-      throw new ForbiddenException('权限不足');
+      throw new ForbiddenException(this.i18n.t('common.insufficient_permissions'));
     }
 
     return true;

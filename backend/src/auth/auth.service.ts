@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { LoginDto, RegisterDto } from './dto/login.dto';
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private i18n: I18nService,
   ) {}
 
   async validateUser(username: string, password: string) {
@@ -34,16 +36,20 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.username_or_password_error'),
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('用户名或密码错误');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.username_or_password_error'),
+      );
     }
 
     if (user.status !== 'active') {
-      throw new UnauthorizedException('账户已被禁用');
+      throw new UnauthorizedException(this.i18n.t('auth.account_disabled'));
     }
 
     const { password: _, ...result } = user;
@@ -91,7 +97,9 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new UnauthorizedException('用户名或邮箱已存在');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.username_or_email_exists'),
+      );
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
@@ -129,7 +137,9 @@ export class AuthService {
     });
 
     if (!user || user.status !== 'active') {
-      throw new UnauthorizedException('用户不存在或已被禁用');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.user_not_found_or_disabled'),
+      );
     }
 
     return user;

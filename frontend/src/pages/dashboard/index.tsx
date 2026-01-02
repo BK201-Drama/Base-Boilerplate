@@ -1,51 +1,78 @@
-import { Card, Row, Col, Statistic } from 'antd';
+import { Card, Row, Col, Statistic, Typography } from 'antd';
 import { UserOutlined, TeamOutlined, FileTextOutlined, SafetyOutlined } from '@ant-design/icons';
 
+const { Title } = Typography;
+
 export const Dashboard = () => {
+  const statistics = [
+    {
+      title: '用户总数',
+      value: 0,
+      icon: <UserOutlined />,
+      color: '#3f8600',
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    },
+    {
+      title: '角色数量',
+      value: 0,
+      icon: <TeamOutlined />,
+      color: '#1890ff',
+      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    },
+    {
+      title: '权限数量',
+      value: 0,
+      icon: <SafetyOutlined />,
+      color: '#cf1322',
+      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    },
+    {
+      title: '操作日志',
+      value: 0,
+      icon: <FileTextOutlined />,
+      color: '#722ed1',
+      gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    },
+  ];
+
   return (
-    <div style={{ padding: '24px' }}>
-      <h1 style={{ marginBottom: '24px' }}>仪表盘</h1>
+    <div className="p-6 bg-gray-100 h-full overflow-auto">
+      <Title level={2} className="mb-6 text-gray-800">
+        仪表盘
+      </Title>
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="用户总数"
-              value={0}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="角色数量"
-              value={0}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="权限数量"
-              value={0}
-              prefix={<SafetyOutlined />}
-              valueStyle={{ color: '#cf1322' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="操作日志"
-              value={0}
-              prefix={<FileTextOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
+        {statistics.map((stat, index) => (
+          <Col xs={24} sm={12} lg={6} key={index}>
+            <Card
+              hoverable
+              className="rounded-xl shadow-md transition-all duration-300 border-none overflow-hidden"
+              bodyStyle={{
+                padding: '24px',
+                background: stat.gradient,
+                position: 'relative',
+              }}
+            >
+              <div className="relative z-10">
+                <div className="text-[32px] text-white/90 mb-3">
+                  {stat.icon}
+                </div>
+                <Statistic
+                  title={
+                    <span className="text-white/90 text-sm">
+                      {stat.title}
+                    </span>
+                  }
+                  value={stat.value}
+                  valueStyle={{
+                    color: '#fff',
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                  }}
+                />
+              </div>
+            </Card>
+          </Col>
+        ))}
       </Row>
     </div>
   );

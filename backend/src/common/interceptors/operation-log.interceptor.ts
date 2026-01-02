@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -15,6 +16,7 @@ export class OperationLogInterceptor implements NestInterceptor {
   constructor(
     private prisma: PrismaService,
     private reflector: Reflector,
+    private i18n: I18nService,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -65,7 +67,7 @@ export class OperationLogInterceptor implements NestInterceptor {
                 },
               });
             } catch (error) {
-              console.error('操作日志记录失败:', error);
+              console.error(this.i18n.t('common.operation_log_failed'), error);
             }
           }
         },
@@ -90,7 +92,7 @@ export class OperationLogInterceptor implements NestInterceptor {
                 },
               });
             } catch (logError) {
-              console.error('操作日志记录失败:', logError);
+              console.error(this.i18n.t('common.operation_log_failed'), logError);
             }
           }
         },

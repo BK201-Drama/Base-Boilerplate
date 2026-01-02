@@ -1,0 +1,8 @@
+{
+  "username_required": "用户名不能为空",
+  "email_required": "邮箱不能为空",
+  "email_invalid": "邮箱格式不正确",
+  "password_required": "密码不能为空",
+  "username_or_email_required": "用户名或邮箱不能为空"
+}
+

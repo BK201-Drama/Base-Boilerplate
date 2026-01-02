@@ -1,0 +1,8 @@
+{
+  "username_required": "Username is required",
+  "email_required": "Email is required",
+  "email_invalid": "Email format is incorrect",
+  "password_required": "Password is required",
+  "username_or_email_required": "Username or email is required"
+}
+

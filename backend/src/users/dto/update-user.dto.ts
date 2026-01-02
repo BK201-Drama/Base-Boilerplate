@@ -8,7 +8,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   nickname?: string;
 
   @IsOptional()
-  @IsEmail({}, { message: '邮箱格式不正确' })
+  @IsEmail({}, { message: 'validation.email_invalid' })
   email?: string;
 
   @IsOptional()

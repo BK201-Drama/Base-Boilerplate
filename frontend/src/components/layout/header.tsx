@@ -1,10 +1,9 @@
 import { useGetIdentity } from '@refinedev/core';
-import { Layout, Avatar, Dropdown, Space, Typography } from 'antd';
-import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Avatar, Dropdown, Space, Typography } from 'antd';
+import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import { useLogout } from '@refinedev/core';
 import type { MenuProps } from 'antd';
 
-const { Header: AntHeader } = Layout;
 const { Text } = Typography;
 
 export const Header = () => {
@@ -22,6 +21,15 @@ export const Header = () => {
       ),
     },
     {
+      key: 'settings',
+      label: (
+        <Space>
+          <SettingOutlined />
+          <span>系统设置</span>
+        </Space>
+      ),
+    },
+    {
       type: 'divider',
     },
     {
@@ -33,31 +41,28 @@ export const Header = () => {
         </Space>
       ),
       onClick: () => logout(),
+      danger: true,
     },
   ];
 
   return (
-    <AntHeader
-      style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        padding: '0 24px',
-        background: '#fff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      }}
-    >
-      <Space>
-        <Text strong>{user?.name || user?.username}</Text>
-        <Dropdown menu={{ items }} placement="bottomRight">
+    <div className="flex justify-end items-center px-5 h-16 min-h-16 bg-gradient-to-br from-primary-start to-primary-end shadow-md">
+      <Space size="small">
+        <div className="text-right">
+          <Text strong className="text-white block text-[13px] leading-[1.2]">
+            {user?.name || user?.username}
+          </Text>
+        </div>
+        <Dropdown menu={{ items }} placement="bottomRight" arrow>
           <Avatar
-            style={{ cursor: 'pointer' }}
+            className="cursor-pointer border-2 border-white/30 shadow-md"
+            size="default"
             src={user?.avatar}
             icon={!user?.avatar && <UserOutlined />}
           />
         </Dropdown>
       </Space>
-    </AntHeader>
+    </div>
   );
 };
 

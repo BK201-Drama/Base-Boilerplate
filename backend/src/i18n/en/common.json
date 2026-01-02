@@ -1,0 +1,7 @@
+{
+  "insufficient_permissions": "Insufficient permissions",
+  "file_type_not_supported": "File type not supported",
+  "import_success": "Import successful",
+  "operation_log_failed": "Failed to record operation log"
+}
+

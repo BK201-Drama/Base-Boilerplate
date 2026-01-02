@@ -11,7 +11,7 @@ export const Login = () => {
         },
       }}
       title={
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div className="text-center mb-6">
           <h1>B端底座系统</h1>
           <p>欢迎登录</p>
         </div>

@@ -1,0 +1,10 @@
+{
+  "export_columns": {
+    "id": "ID",
+    "username": "用户名",
+    "email": "邮箱",
+    "nickname": "昵称",
+    "createdAt": "创建时间"
+  }
+}
+

@@ -1,25 +1,25 @@
 import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
 
 export class LoginDto {
-  @IsNotEmpty({ message: '用户名或邮箱不能为空' })
+  @IsNotEmpty({ message: 'validation.username_or_email_required' })
   @IsString()
   username: string;
 
-  @IsNotEmpty({ message: '密码不能为空' })
+  @IsNotEmpty({ message: 'validation.password_required' })
   @IsString()
   password: string;
 }
 
 export class RegisterDto {
-  @IsNotEmpty({ message: '用户名不能为空' })
+  @IsNotEmpty({ message: 'validation.username_required' })
   @IsString()
   username: string;
 
-  @IsNotEmpty({ message: '邮箱不能为空' })
-  @IsEmail({}, { message: '邮箱格式不正确' })
+  @IsNotEmpty({ message: 'validation.email_required' })
+  @IsEmail({}, { message: 'validation.email_invalid' })
   email: string;
 
-  @IsNotEmpty({ message: '密码不能为空' })
+  @IsNotEmpty({ message: 'validation.password_required' })
   @IsString()
   password: string;
 

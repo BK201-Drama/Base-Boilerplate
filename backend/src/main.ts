@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { I18nValidationPipe } from 'nestjs-i18n';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,9 +12,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // 全局验证管道
+  // 全局验证管道（使用i18n）
   app.useGlobalPipes(
-    new ValidationPipe({
+    new I18nValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,

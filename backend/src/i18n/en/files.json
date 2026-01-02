@@ -1,0 +1,10 @@
+{
+  "export_columns": {
+    "id": "ID",
+    "username": "Username",
+    "email": "Email",
+    "nickname": "Nickname",
+    "createdAt": "Created At"
+  }
+}
+

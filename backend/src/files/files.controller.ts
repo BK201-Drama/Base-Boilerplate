@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { I18nService } from 'nestjs-i18n';
 import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { diskStorage } from 'multer';
@@ -24,6 +25,7 @@ export class FilesController {
   constructor(
     private filesService: FilesService,
     private configService: ConfigService,
+    private i18n: I18nService,
   ) {}
 
   @Post('upload')
@@ -48,7 +50,7 @@ export class FilesController {
         if (FileUtil.isAllowedFileType(file.originalname, allowedTypes)) {
           cb(null, true);
         } else {
-          cb(new Error('不支持的文件类型'), false);
+          cb(new Error(this.i18n.t('common.file_type_not_supported')), false);
         }
       },
     }),
@@ -76,11 +78,27 @@ export class FilesController {
     // 示例：导出用户数据
     const data = await this.filesService.getExportData(query);
     const columns = [
-      { header: 'ID', key: 'id', width: 36 },
-      { header: '用户名', key: 'username', width: 20 },
-      { header: '邮箱', key: 'email', width: 30 },
-      { header: '昵称', key: 'nickname', width: 20 },
-      { header: '创建时间', key: 'createdAt', width: 20 },
+      { header: this.i18n.t('files.export_columns.id'), key: 'id', width: 36 },
+      {
+        header: this.i18n.t('files.export_columns.username'),
+        key: 'username',
+        width: 20,
+      },
+      {
+        header: this.i18n.t('files.export_columns.email'),
+        key: 'email',
+        width: 30,
+      },
+      {
+        header: this.i18n.t('files.export_columns.nickname'),
+        key: 'nickname',
+        width: 20,
+      },
+      {
+        header: this.i18n.t('files.export_columns.createdAt'),
+        key: 'createdAt',
+        width: 20,
+      },
     ];
     const filename = `export-${Date.now()}`;
     await this.filesService.exportExcel(data, columns, filename, res);
@@ -105,7 +123,7 @@ export class FilesController {
   async importExcel(@UploadedFile() file: Express.Multer.File) {
     const data = await this.filesService.importExcel(file.path);
     return {
-      message: '导入成功',
+      message: this.i18n.t('common.import_success'),
       total: data.length,
       data,
     };
