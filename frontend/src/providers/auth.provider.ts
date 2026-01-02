@@ -82,51 +82,51 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
       };
     },
 
-    onError: async (error) => {
-      if (error.status === 401 || error.status === 403) {
+  onError: async (error) => {
+    if (error.status === 401 || error.status === 403) {
+      return {
+        logout: true,
+        redirectTo: '/login',
+        error,
+      };
+    }
+
+    return { error };
+  },
+
+  getIdentity: async () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
         return {
-          logout: true,
-          redirectTo: '/login',
-          error,
+          id: user.id,
+          name: user.nickname || user.username,
+          avatar: user.avatar,
+          ...user,
         };
+      } catch {
+        return null;
       }
+    }
+    return null;
+  },
 
-      return { error };
-    },
-
-    getIdentity: async () => {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          return {
-            id: user.id,
-            name: user.nickname || user.username,
-            avatar: user.avatar,
-            ...user,
-          };
-        } catch {
-          return null;
-        }
+  getPermissions: async () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const permissions = user.roles?.flatMap((role: any) =>
+          role.permissions.map((p: any) => `${p.resource}:${p.action}`),
+        ) || [];
+        return permissions;
+      } catch {
+        return [];
       }
-      return null;
-    },
-
-    getPermissions: async () => {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          const permissions = user.roles?.flatMap((role: any) =>
-            role.permissions.map((p: any) => `${p.resource}:${p.action}`),
-          ) || [];
-          return permissions;
-        } catch {
-          return [];
-        }
-      }
-      return [];
-    },
+    }
+    return [];
+  },
 
     register: async ({ username, email, password, nickname }) => {
       try {

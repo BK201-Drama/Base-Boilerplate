@@ -20,6 +20,7 @@ import { dataProvider, authProvider } from './providers';
 import { Layout } from './components/layout';
 import { Login } from './pages/login';
 import { Dashboard } from './pages/dashboard';
+import { UserList, UserCreate, UserEdit, UserShow } from './pages/users';
 
 function App() {
   const { i18n, t } = useTranslation();
@@ -44,11 +45,21 @@ function App() {
                     icon: '📊',
                   },
                 },
+                {
+                  name: 'users',
+                  list: '/users',
+                  create: '/users/create',
+                  edit: '/users/edit/:id',
+                  show: '/users/show/:id',
+                  meta: {
+                    label: '用户管理',
+                    icon: '👥',
+                  },
+                },
               ]}
               options={{
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
-                useNewQueryKeys: true,
                 projectId: 'base-boilerplate',
               }}
             >
@@ -61,6 +72,12 @@ function App() {
                   }
                 >
                   <Route index element={<Dashboard />} />
+                  <Route path="/users">
+                    <Route index element={<UserList />} />
+                    <Route path="create" element={<UserCreate />} />
+                    <Route path="edit/:id" element={<UserEdit />} />
+                    <Route path="show/:id" element={<UserShow />} />
+                  </Route>
                 </Route>
                 <Route path="/login" element={<Login />} />
                 <Route path="*" element={<ErrorComponent />} />

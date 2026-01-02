@@ -17,34 +17,41 @@ const mockStatistics: Statistics = {
 };
 
 export const dataMockRepository: DataRepository = {
-  // 通用 HTTP 方法
-  get: async (url: string, _config?: any) => {
+  // 通用 CRUD 方法
+  getOne: async <T = any>(resource: string, id: string | number): Promise<T> => {
     await delay(300);
-    const data = url === '/dashboard/statistics' ? mockStatistics : null;
-    return { data } as any;
+    // 返回模拟数据
+    return { id, resource } as T;
   },
 
-  post: async (_url: string, data?: any, _config?: any) => {
+  getMany: async <T = any>(resource: string, config?: any): Promise<{ data: T[]; total?: number }> => {
     await delay(300);
-    return { data: data || null } as any;
+    // 返回模拟数据列表
+    const page = config?.params?.page || 1;
+    const limit = config?.params?.limit || 10;
+    const mockData: T[] = Array.from({ length: limit }, (_, i) => ({
+      id: (page - 1) * limit + i + 1,
+      resource,
+    })) as T[];
+    return {
+      data: mockData,
+      total: 100, // 模拟总数
+    };
   },
 
-  patch: async (_url: string, data?: any, _config?: any) => {
+  create: async <T = any>(resource: string, data?: any): Promise<T> => {
     await delay(300);
-    return { data: data || null } as any;
+    return { id: Date.now(), ...data } as T;
   },
 
-  delete: async (_url: string, _config?: any) => {
+  update: async <T = any>(resource: string, id: string | number, data?: any): Promise<T> => {
     await delay(300);
-    return { data: null } as any;
+    return { id, ...data } as T;
   },
 
-  request: async (config: any) => {
-    await delay(500);
-    const data = config.url === '/dashboard/statistics' && config.method === 'get' 
-      ? mockStatistics 
-      : null;
-    return { data } as any;
+  delete: async (resource: string, id: string | number): Promise<void> => {
+    await delay(300);
+    // Mock 删除操作
   },
 
   // 业务方法

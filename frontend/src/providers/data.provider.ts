@@ -10,36 +10,33 @@ import type { Repository } from '@/repository';
 // 创建 Provider 工厂函数
 export const createDataProvider = (repository: Repository): DataProvider => {
   return {
-    getList: async ({ resource, pagination, filters, sorters }) => {
-      const paginationObj = pagination as { current?: number; pageSize?: number; mode?: string } | undefined;
-      const page = (paginationObj?.mode === 'off' ? undefined : paginationObj?.current) ?? 1;
-      const pageSize = paginationObj?.pageSize ?? 10;
+  getList: async ({ resource, pagination, filters, sorters }) => {
+    const paginationObj = pagination as { current?: number; pageSize?: number; mode?: string } | undefined;
+    const page = (paginationObj?.mode === 'off' ? undefined : paginationObj?.current) ?? 1;
+    const pageSize = paginationObj?.pageSize ?? 10;
 
-      const params: any = {
-        page,
-        limit: pageSize,
-      };
+    const params: any = {
+      page,
+      limit: pageSize,
+    };
 
-      // 处理排序
-      if (sorters && sorters.length > 0) {
-        const sorter = sorters[0];
-        params.sort = `${sorter.field}:${sorter.order === 'asc' ? 'asc' : 'desc'}`;
-      }
+    // 处理排序
+    if (sorters && sorters.length > 0) {
+      const sorter = sorters[0];
+      params.sort = `${sorter.field}:${sorter.order === 'asc' ? 'asc' : 'desc'}`;
+    }
 
-      // 处理过滤
-      if (filters && filters.length > 0) {
-        filters.forEach((filter) => {
-          if (filter.operator === 'eq') {
-            params[filter.field] = filter.value;
-          } else if (filter.operator === 'contains') {
-            params[`${filter.field}_like`] = filter.value;
-          }
-        });
-      }
+    // 处理过滤
+    if (filters && filters.length > 0) {
+      filters.forEach((filter) => {
+        if (filter.operator === 'eq') {
+          params[filter.field] = filter.value;
+        } else if (filter.operator === 'contains') {
+          params[`${filter.field}_like`] = filter.value;
+        }
+      });
+    }
 
-      if (!repository.getMany) {
-        throw new Error(`Repository method 'getMany' is not implemented for resource '${resource}'`);
-      }
       const result = await repository.getMany(resource, { params });
       return {
         data: result.data,
@@ -48,42 +45,27 @@ export const createDataProvider = (repository: Repository): DataProvider => {
     },
 
     getOne: async ({ resource, id }) => {
-      if (!repository.getOne) {
-        throw new Error(`Repository method 'getOne' is not implemented for resource '${resource}'`);
-      }
       const data = await repository.getOne(resource, id);
       return { data };
     },
 
     create: async ({ resource, variables }) => {
-      if (!repository.create) {
-        throw new Error(`Repository method 'create' is not implemented for resource '${resource}'`);
-      }
       const data = await repository.create(resource, variables);
       return { data };
     },
 
     update: async ({ resource, id, variables }) => {
-      if (!repository.update) {
-        throw new Error(`Repository method 'update' is not implemented for resource '${resource}'`);
-      }
       const data = await repository.update(resource, id, variables);
       return { data };
     },
 
     deleteOne: async ({ resource, id }) => {
-      if (!repository.delete) {
-        throw new Error(`Repository method 'delete' is not implemented for resource '${resource}'`);
-      }
-      
       // 先获取要删除的数据
       let deletedData: any = { id };
-      if (repository.getOne) {
-        try {
-          deletedData = await repository.getOne(resource, id);
-        } catch {
-          // 如果获取失败，使用默认值
-        }
+      try {
+        deletedData = await repository.getOne(resource, id);
+      } catch {
+        // 如果获取失败，使用默认值
       }
 
       await repository.delete(resource, id);

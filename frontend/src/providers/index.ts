@@ -6,7 +6,7 @@
  * 
  * 使用方式：
  * - 正常开发：yarn dev (使用真实后端)
- * - Mock 模式：yarn mock (使用 mock 数据)
+ * - Mock 模式：设置 VITE_USE_MOCK=true (使用 mock 数据)
  */
 
 import { createDataProvider } from './data.provider';
