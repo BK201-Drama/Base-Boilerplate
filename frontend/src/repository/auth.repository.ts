@@ -17,27 +17,6 @@ export interface AuthRepository extends IPublicRepository {
 }
 
 export const authRepository: AuthRepository = {
-  // 公共 CRUD 方法（认证 Repository 通常不需要，但为了接口一致性提供）
-  get: async (url: string, config?: any) => {
-    return httpClient.get(url, config);
-  },
-
-  post: async (url: string, data?: any, config?: any) => {
-    return httpClient.post(url, data, config);
-  },
-
-  patch: async (url: string, data?: any, config?: any) => {
-    return httpClient.patch(url, data, config);
-  },
-
-  delete: async (url: string, config?: any) => {
-    return httpClient.delete(url, config);
-  },
-
-  request: async (config: any) => {
-    return httpClient.request(config);
-  },
-
   // 认证相关方法
   login: async (username: string, password: string) => {
     const response = await httpClient.post('/auth/login', { username, password });

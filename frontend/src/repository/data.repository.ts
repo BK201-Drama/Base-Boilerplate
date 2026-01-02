@@ -14,12 +14,30 @@ export interface DataRepository extends IPublicRepository {
 }
 
 export const dataRepository: DataRepository = {
-  // 通用 HTTP 方法
-  get: (url: string, config?: any) => httpClient.get(url, config),
-  post: (url: string, data?: any, config?: any) => httpClient.post(url, data, config),
-  patch: (url: string, data?: any, config?: any) => httpClient.patch(url, data, config),
-  delete: (url: string, config?: any) => httpClient.delete(url, config),
-  request: (config: any) => httpClient.request(config),
+  // 通用 CRUD 方法（可选实现）
+  getOne: async <T = any>(resource: string, id: string | number, config?: any): Promise<T> => {
+    const response = await httpClient.get<T>(`/${resource}/${id}`, config);
+    return response.data;
+  },
+
+  getMany: async <T = any>(resource: string, config?: any): Promise<{ data: T[]; total?: number }> => {
+    const response = await httpClient.get<{ data: T[]; total?: number }>(`/${resource}`, config);
+    return response.data;
+  },
+
+  create: async <T = any>(resource: string, data: any, config?: any): Promise<T> => {
+    const response = await httpClient.post<T>(`/${resource}`, data, config);
+    return response.data;
+  },
+
+  update: async <T = any>(resource: string, id: string | number, data: any, config?: any): Promise<T> => {
+    const response = await httpClient.patch<T>(`/${resource}/${id}`, data, config);
+    return response.data;
+  },
+
+  delete: async (resource: string, id: string | number, config?: any): Promise<void> => {
+    await httpClient.delete(`/${resource}/${id}`, config);
+  },
 
   // 业务方法
   getStatistics: async (): Promise<Statistics> => {
