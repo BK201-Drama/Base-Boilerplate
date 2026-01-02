@@ -1,6 +1,9 @@
 import { AuthPage } from '@refinedev/antd';
+import { useTranslation } from 'react-i18next';
 
 export const Login = () => {
+  const { t } = useTranslation();
+
   return (
     <AuthPage
       type="login"
@@ -12,8 +15,8 @@ export const Login = () => {
       }}
       title={
         <div className="text-center mb-6">
-          <h1>B端底座系统</h1>
-          <p>欢迎登录</p>
+          <h1>{t('common.appName')}</h1>
+          <p>{t('common.welcome')}</p>
         </div>
       }
     />

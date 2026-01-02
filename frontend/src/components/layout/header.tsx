@@ -3,12 +3,14 @@ import { Avatar, Dropdown, Space, Typography } from 'antd';
 import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import { useLogout } from '@refinedev/core';
 import type { MenuProps } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
 
 export const Header = () => {
   const { data: user } = useGetIdentity();
   const { mutate: logout } = useLogout();
+  const { t } = useTranslation();
 
   const items: MenuProps['items'] = [
     {
@@ -16,7 +18,7 @@ export const Header = () => {
       label: (
         <Space>
           <UserOutlined />
-          <span>个人资料</span>
+          <span>{t('common.profile')}</span>
         </Space>
       ),
     },
@@ -25,7 +27,7 @@ export const Header = () => {
       label: (
         <Space>
           <SettingOutlined />
-          <span>系统设置</span>
+          <span>{t('common.settings')}</span>
         </Space>
       ),
     },
@@ -37,7 +39,7 @@ export const Header = () => {
       label: (
         <Space>
           <LogoutOutlined />
-          <span>退出登录</span>
+          <span>{t('common.logout')}</span>
         </Space>
       ),
       onClick: () => logout(),

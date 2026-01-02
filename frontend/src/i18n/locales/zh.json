@@ -1,0 +1,26 @@
+{
+  "common": {
+    "appName": "B端底座系统",
+    "appNameShort": "B端",
+    "dashboard": "仪表盘",
+    "welcome": "欢迎登录",
+    "profile": "个人资料",
+    "settings": "系统设置",
+    "logout": "退出登录"
+  },
+  "dashboard": {
+    "title": "仪表盘",
+    "totalUsers": "用户总数",
+    "totalRoles": "角色数量",
+    "totalPermissions": "权限数量",
+    "operationLogs": "操作日志"
+  },
+  "auth": {
+    "loginFailed": "登录失败",
+    "loginFailedCheck": "登录失败，请检查用户名和密码",
+    "authFailed": "身份验证失败",
+    "notLoggedIn": "未登录",
+    "registerFailed": "注册失败"
+  }
+}
+

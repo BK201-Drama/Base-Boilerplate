@@ -1,0 +1,26 @@
+{
+  "common": {
+    "appName": "B-Side Base System",
+    "appNameShort": "B-Side",
+    "dashboard": "Dashboard",
+    "welcome": "Welcome",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalUsers": "Total Users",
+    "totalRoles": "Total Roles",
+    "totalPermissions": "Total Permissions",
+    "operationLogs": "Operation Logs"
+  },
+  "auth": {
+    "loginFailed": "Login failed",
+    "loginFailedCheck": "Login failed, please check username and password",
+    "authFailed": "Authentication failed",
+    "notLoggedIn": "Not logged in",
+    "registerFailed": "Registration failed"
+  }
+}
+

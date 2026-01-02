@@ -11,7 +11,10 @@ import routerBindings, {
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { ConfigProvider, App as AntdApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
+import enUS from 'antd/locale/en_US';
 import '@refinedev/antd/dist/reset.css';
+import { useTranslation } from 'react-i18next';
+import './i18n';
 
 import { dataProvider } from './providers/dataProvider';
 import { authProvider } from './providers/authProvider';
@@ -20,9 +23,12 @@ import { Login } from './pages/login';
 import { Dashboard } from './pages/dashboard';
 
 function App() {
+  const { i18n, t } = useTranslation();
+  const antdLocale = i18n.language === 'en' ? enUS : zhCN;
+
   return (
     <BrowserRouter>
-      <ConfigProvider locale={zhCN}>
+      <ConfigProvider locale={antdLocale}>
         <RefineKbarProvider>
           <AntdApp>
             <Refine
@@ -35,7 +41,7 @@ function App() {
                   name: 'dashboard',
                   list: '/',
                   meta: {
-                    label: '仪表盘',
+                    label: t('common.dashboard'),
                     icon: '📊',
                   },
                 },

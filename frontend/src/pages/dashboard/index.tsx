@@ -1,33 +1,36 @@
 import { Card, Row, Col, Statistic, Typography } from 'antd';
 import { UserOutlined, TeamOutlined, FileTextOutlined, SafetyOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 
 const { Title } = Typography;
 
 export const Dashboard = () => {
+  const { t } = useTranslation();
+
   const statistics = [
     {
-      title: '用户总数',
+      title: t('dashboard.totalUsers'),
       value: 0,
       icon: <UserOutlined />,
       color: '#3f8600',
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     },
     {
-      title: '角色数量',
+      title: t('dashboard.totalRoles'),
       value: 0,
       icon: <TeamOutlined />,
       color: '#1890ff',
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
     },
     {
-      title: '权限数量',
+      title: t('dashboard.totalPermissions'),
       value: 0,
       icon: <SafetyOutlined />,
       color: '#cf1322',
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
     },
     {
-      title: '操作日志',
+      title: t('dashboard.operationLogs'),
       value: 0,
       icon: <FileTextOutlined />,
       color: '#722ed1',
@@ -38,7 +41,7 @@ export const Dashboard = () => {
   return (
     <div className="p-6 bg-gray-100 h-full overflow-auto">
       <Title level={2} className="mb-6 text-gray-800">
-        仪表盘
+        {t('dashboard.title')}
       </Title>
       <Row gutter={[16, 16]}>
         {statistics.map((stat, index) => (

@@ -1,8 +1,11 @@
 import { Typography } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Title: AntTitle } = Typography;
 
 export const Title = ({ collapsed }: { collapsed: boolean }) => {
+  const { t } = useTranslation();
+
   return (
     <div
       className={`text-center transition-all duration-300 bg-gradient-to-br from-primary-start to-primary-end ${
@@ -15,7 +18,7 @@ export const Title = ({ collapsed }: { collapsed: boolean }) => {
           collapsed ? 'text-sm' : 'text-lg'
         }`}
       >
-        {collapsed ? 'B端' : 'B端底座系统'}
+        {collapsed ? t('common.appNameShort') : t('common.appName')}
       </AntTitle>
     </div>
   );

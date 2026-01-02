@@ -1,5 +1,6 @@
 import type { AuthProvider } from '@refinedev/core';
 import axios from 'axios';
+import i18n from '../i18n';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -24,7 +25,7 @@ export const authProvider: AuthProvider = {
         success: false,
         error: {
           name: 'LoginError',
-          message: '登录失败，请检查用户名和密码',
+          message: i18n.t('auth.loginFailedCheck'),
         },
       };
     } catch (error: any) {
@@ -32,7 +33,7 @@ export const authProvider: AuthProvider = {
         success: false,
         error: {
           name: 'LoginError',
-          message: error.response?.data?.message || '登录失败',
+          message: error.response?.data?.message || i18n.t('auth.loginFailed'),
         },
       };
     }
@@ -68,7 +69,7 @@ export const authProvider: AuthProvider = {
           authenticated: false,
           redirectTo: '/login',
           error: {
-            message: '身份验证失败',
+            message: i18n.t('auth.authFailed'),
             name: 'NotAuthenticated',
           },
         };
@@ -79,7 +80,7 @@ export const authProvider: AuthProvider = {
       authenticated: false,
       redirectTo: '/login',
       error: {
-        message: '未登录',
+        message: i18n.t('auth.notLoggedIn'),
         name: 'NotAuthenticated',
       },
     };
@@ -144,7 +145,7 @@ export const authProvider: AuthProvider = {
         success: false,
         error: {
           name: 'RegisterError',
-          message: '注册失败',
+          message: i18n.t('auth.registerFailed'),
         },
       };
     } catch (error: any) {
@@ -152,7 +153,7 @@ export const authProvider: AuthProvider = {
         success: false,
         error: {
           name: 'RegisterError',
-          message: error.response?.data?.message || '注册失败',
+          message: error.response?.data?.message || i18n.t('auth.registerFailed'),
         },
       };
     }
