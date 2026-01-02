@@ -1,8 +1,16 @@
+/**
+ * HeaderPresenter - Header 展示组件
+ * 
+ * 展示层：纯展示组件，不包含任何业务逻辑
+ * 所有数据通过 props 传入，所有交互通过回调函数处理
+ * 这个组件可以在任何平台复用（Web、H5、移动端等）
+ */
+
 import { Avatar, Dropdown, Space, Typography } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { User } from '@/services/user.service';
+import type { User } from '@/types';
 
 const { Text } = Typography;
 
