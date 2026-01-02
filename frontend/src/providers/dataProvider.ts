@@ -1,5 +1,6 @@
-import { DataProvider } from '@refinedev/core';
-import axios, { AxiosInstance } from 'axios';
+import type { DataProvider } from '@refinedev/core';
+import axios from 'axios';
+import type { AxiosInstance } from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 

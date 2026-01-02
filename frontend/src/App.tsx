@@ -2,12 +2,12 @@ import { Refine } from '@refinedev/core';
 import { RefineKbar, RefineKbarProvider } from '@refinedev/kbar';
 import {
   ErrorComponent,
-  notificationProvider,
+  useNotificationProvider,
 } from '@refinedev/antd';
 import routerBindings, {
   DocumentTitleHandler,
   UnsavedChangesNotifier,
-} from '@refinedev/react-router-v6';
+} from '@refinedev/react-router';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { ConfigProvider, App as AntdApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
@@ -29,7 +29,7 @@ function App() {
               dataProvider={dataProvider}
               authProvider={authProvider}
               routerProvider={routerBindings}
-              notificationProvider={notificationProvider}
+              notificationProvider={useNotificationProvider()}
               resources={[
                 {
                   name: 'dashboard',
