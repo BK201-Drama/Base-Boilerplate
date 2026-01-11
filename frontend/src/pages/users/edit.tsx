@@ -15,6 +15,3 @@ export const UserEdit: React.FC<IResourceComponentsProps> = () => {
     </Edit>
   );
 };
-
-
-

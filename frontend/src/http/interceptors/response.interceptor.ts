@@ -19,6 +19,3 @@ export const responseInterceptor = {
     return Promise.reject(error);
   },
 };
-
-
-

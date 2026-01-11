@@ -32,4 +32,3 @@ if (import.meta.env.DEV) {
 }
 
 export type { DataProvider, AuthProvider } from '@refinedev/core';
-

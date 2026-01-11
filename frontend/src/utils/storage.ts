@@ -123,4 +123,3 @@ export const clearSessionStorage = (): void => {
     console.error('Failed to clear session storage:', error);
   }
 };
-

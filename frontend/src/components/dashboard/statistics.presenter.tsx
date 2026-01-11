@@ -91,4 +91,3 @@ export const StatisticsPresenter = ({ statistics, loading = false }: StatisticsP
     </div>
   );
 };
-

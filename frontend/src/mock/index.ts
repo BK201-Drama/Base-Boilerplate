@@ -13,6 +13,3 @@ export const mockRepository: Repository = {
   ...dataMockRepository,
   ...authMockRepository,
 };
-
-
-

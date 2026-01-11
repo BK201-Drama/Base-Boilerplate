@@ -26,6 +26,3 @@ export class RegisterDto {
   @IsString()
   nickname?: string;
 }
-
-
-

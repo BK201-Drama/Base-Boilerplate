@@ -151,4 +151,3 @@ export class UsersService {
     return { message: this.i18n.t('users.user_deleted_success') };
   }
 }
-

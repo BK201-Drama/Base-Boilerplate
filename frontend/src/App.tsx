@@ -34,22 +34,22 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+    <BrowserRouter>
         <ConfigProvider locale={antdLocale} theme={lightTheme}>
-          <RefineKbarProvider>
-            <AntdApp>
-              <Refine
-                dataProvider={dataProvider}
-                authProvider={authProvider}
-                routerProvider={routerBindings}
-                notificationProvider={useNotificationProvider()}
-                resources={getResources(t)}
-                options={getRefineOptions()}
-              >
-                <Routes>
-                  {/* 受保护的路由 */}
-                  <Route
-                    element={
+        <RefineKbarProvider>
+          <AntdApp>
+            <Refine
+              dataProvider={dataProvider}
+              authProvider={authProvider}
+              routerProvider={routerBindings}
+              notificationProvider={useNotificationProvider()}
+              resources={getResources(t)}
+              options={getRefineOptions()}
+            >
+              <Routes>
+                {/* 受保护的路由 */}
+                <Route
+                  element={
                       <Authenticated
                         key="authenticated-routes"
                         fallback={<CatchAllNavigate to="/login" />}
@@ -64,27 +64,27 @@ function App() {
                           </div>
                         }
                       >
-                        <Layout>
-                          <Outlet />
-                        </Layout>
+                    <Layout>
+                      <Outlet />
+                    </Layout>
                       </Authenticated>
-                    }
-                  >
-                    {getProtectedRoutes()}
-                  </Route>
-                  {/* 公共路由 */}
-                  {getPublicRoutes()}
-                  {/* 404 路由 */}
-                  <Route path="*" element={<ErrorComponent />} />
-                </Routes>
-                <RefineKbar />
-                <UnsavedChangesNotifier />
-                <DocumentTitleHandler />
-              </Refine>
-            </AntdApp>
-          </RefineKbarProvider>
-        </ConfigProvider>
-      </BrowserRouter>
+                  }
+                >
+                  {getProtectedRoutes()}
+                </Route>
+                {/* 公共路由 */}
+                {getPublicRoutes()}
+                {/* 404 路由 */}
+                <Route path="*" element={<ErrorComponent />} />
+              </Routes>
+              <RefineKbar />
+              <UnsavedChangesNotifier />
+              <DocumentTitleHandler />
+            </Refine>
+          </AntdApp>
+        </RefineKbarProvider>
+      </ConfigProvider>
+    </BrowserRouter>
     </ErrorBoundary>
   );
 }

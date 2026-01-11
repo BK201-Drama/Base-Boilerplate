@@ -58,4 +58,3 @@ export const UserShow: React.FC<IResourceComponentsProps> = () => {
     </Show>
   );
 };
-

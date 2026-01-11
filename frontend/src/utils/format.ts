@@ -167,4 +167,3 @@ export const formatRelativeTime = (date: string | Date | number | undefined | nu
   if (months < 12) return `${months}个月前`;
   return `${years}年前`;
 };
-

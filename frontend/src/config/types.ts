@@ -24,4 +24,3 @@ export interface MenuResource {
     icon: ReactNode | string; // 支持 React 组件或字符串（emoji）
   };
 }
-

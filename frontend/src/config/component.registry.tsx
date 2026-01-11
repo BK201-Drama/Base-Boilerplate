@@ -53,4 +53,3 @@ export function getComponent(componentPath: string, parentPath?: string): React.
   );
   return ErrorComponent;
 }
-

@@ -36,6 +36,3 @@ export class FileUtil {
     return allowedTypes.includes(ext);
   }
 }
-
-
-

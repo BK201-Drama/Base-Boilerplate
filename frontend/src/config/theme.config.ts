@@ -189,4 +189,3 @@ export const getThemeConfig = (
  * 默认导出亮色主题
  */
 export default lightTheme;
-

@@ -1,0 +1,15 @@
+# EditorConfig 配置
+# 确保所有编辑器行为一致
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

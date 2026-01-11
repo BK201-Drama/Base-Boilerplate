@@ -35,4 +35,3 @@ export const useDashboardData = () => {
     refetch: query.refetch,
   };
 };
-

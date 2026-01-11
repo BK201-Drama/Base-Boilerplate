@@ -102,4 +102,3 @@ export function getRefineOptions() {
     projectId: projectInfo.projectId,
   };
 }
-

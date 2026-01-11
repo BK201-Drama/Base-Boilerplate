@@ -57,6 +57,3 @@ export const httpClient: HttpClient = {
     return axiosInstance.request<T>(config);
   },
 };
-
-
-

@@ -109,4 +109,3 @@ export const CanAccess: React.FC<CanAccessProps> = ({
 };
 
 export default CanAccess;
-
