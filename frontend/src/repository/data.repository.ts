@@ -8,7 +8,7 @@
  * 不包含业务逻辑，只做 HTTP 请求转发
  */
 
-import { httpClient } from '@/http';
+import { httpClient } from '@/http/axios';
 import type { IPublicRepository, CustomRequestParams } from '@/types';
 
 // 数据 Repository 接口（继承公共接口即可）

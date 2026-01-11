@@ -4,7 +4,7 @@
  * 使用就近放置的 useDashboardData hook
  */
 
-import { StatisticsPresenter } from '@/components/dashboard';
+import { StatisticsPresenter } from '@/components/dashboard/statistics.presenter';
 import { useDashboardData } from './useDashboardData';
 
 export const Dashboard = () => {

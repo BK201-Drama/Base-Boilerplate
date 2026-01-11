@@ -4,7 +4,7 @@
  * 处理认证相关的 API 调用
  */
 
-import { httpClient } from '@/http';
+import { httpClient } from '@/http/axios';
 import type { User } from '@/types';
 
 // 认证 Repository 接口

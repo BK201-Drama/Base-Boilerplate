@@ -19,7 +19,7 @@ import './i18n';
 
 import { dataProvider, authProvider } from './providers';
 import { Layout } from './components/layout';
-import { ErrorBoundary } from './components/error';
+import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { 
   getResources,
   getProtectedRoutes,

@@ -6,7 +6,10 @@
 import React from 'react';
 import { Dashboard } from '@/pages/dashboard';
 import { Login } from '@/pages/login';
-import { UserList, UserCreate, UserEdit, UserShow } from '@/pages/users';
+import { UserList } from '@/pages/users/list';
+import { UserCreate } from '@/pages/users/create';
+import { UserEdit } from '@/pages/users/edit';
+import { UserShow } from '@/pages/users/show';
 
 // 组件映射表
 export const componentRegistry: Record<string, React.ComponentType<any>> = {

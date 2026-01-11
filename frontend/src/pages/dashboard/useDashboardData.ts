@@ -11,7 +11,8 @@ import type { Statistics } from '@/types';
  * 获取 Dashboard 统计数据
  */
 export const useDashboardData = () => {
-  const { data, isLoading, isError, refetch } = useCustom<Statistics>({
+  // Refine v5: useCustom 返回 { query } 结构
+  const { query } = useCustom<Statistics>({
     url: '/dashboard/statistics',
     method: 'get',
     queryOptions: {
@@ -20,7 +21,7 @@ export const useDashboardData = () => {
   });
 
   // 提供默认值，简化页面使用
-  const statistics: Statistics = data?.data || {
+  const statistics: Statistics = query.data?.data || {
     totalUsers: 0,
     totalRoles: 0,
     totalPermissions: 0,
@@ -29,9 +30,9 @@ export const useDashboardData = () => {
 
   return {
     statistics,
-    isLoading,
-    isError,
-    refetch,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
   };
 };
 
