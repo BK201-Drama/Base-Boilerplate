@@ -1,26 +1,27 @@
 /**
- * HeaderPresenter - Header 展示组件
+ * Header 组件
  * 
- * 展示层：纯展示组件，不包含任何业务逻辑
- * 所有数据通过 props 传入，所有交互通过回调函数处理
- * 这个组件可以在任何平台复用（Web、H5、移动端等）
+ * 直接使用 Refine hooks 获取用户信息
  */
 
 import { Avatar, Dropdown, Space, Typography } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useGetIdentity, useLogout } from '@refinedev/core';
 import type { User } from '@/types';
 
 const { Text } = Typography;
 
-export interface HeaderPresenterProps {
-  user: User | null;
-  onLogout: () => void;
-}
-
-export const HeaderPresenter = ({ user, onLogout }: HeaderPresenterProps) => {
+/**
+ * Header 组件
+ * 
+ * 显示当前用户信息和登出按钮
+ */
+export const Header = () => {
   const { t } = useTranslation();
+  const { data: user } = useGetIdentity<User>();
+  const { mutate: logout } = useLogout();
 
   const items: MenuProps['items'] = [
     {
@@ -31,7 +32,7 @@ export const HeaderPresenter = ({ user, onLogout }: HeaderPresenterProps) => {
           <span>{t('common.logout')}</span>
         </Space>
       ),
-      onClick: onLogout,
+      onClick: () => logout(),
       danger: true,
     },
   ];
@@ -56,7 +57,3 @@ export const HeaderPresenter = ({ user, onLogout }: HeaderPresenterProps) => {
     </div>
   );
 };
-
-// 导出 Header 容器组件
-export { HeaderContainer as Header } from '@/containers/HeaderContainer';
-

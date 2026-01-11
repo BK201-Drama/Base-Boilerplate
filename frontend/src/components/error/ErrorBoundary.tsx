@@ -4,7 +4,7 @@
  * 捕获子组件树中的 JavaScript 错误，防止整个应用崩溃
  */
 
-import React, { Component, type ReactNode, type ErrorInfo } from 'react';
+import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Button, Result, Typography } from 'antd';
 
 const { Paragraph, Text } = Typography;

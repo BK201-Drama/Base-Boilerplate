@@ -10,14 +10,22 @@ export interface User {
   nickname?: string;
   email?: string;
   avatar?: string;
+  status?: 'active' | 'inactive';
+  roles?: UserRole[];
+  createdAt?: string;
+  updatedAt?: string;
   [key: string]: any;
 }
 
-// 用户服务接口
-export interface UserService {
-  getUser: () => Promise<User | null>;
-  logout: () => Promise<void>;
-  isAuthenticated: () => Promise<boolean>;
-  user: User | null;
+// 用户角色
+export interface UserRole {
+  id: string | number;
+  name: string;
+  permissions?: Permission[];
 }
 
+// 权限
+export interface Permission {
+  resource: string;
+  action: string;
+}

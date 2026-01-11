@@ -33,6 +33,15 @@ export interface FilterParams {
   value: any;
 }
 
+// 自定义请求参数
+export interface CustomRequestParams {
+  url: string;
+  method: 'get' | 'post' | 'put' | 'patch' | 'delete';
+  payload?: any;
+  query?: Record<string, any>;
+  headers?: Record<string, string>;
+}
+
 // Repository 公共接口
 export interface IPublicRepository {
   // 通用 CRUD 方法（必需）
@@ -41,12 +50,16 @@ export interface IPublicRepository {
   create: <T = any>(resource: string, data: any, config?: any) => Promise<T>;
   update: <T = any>(resource: string, id: string | number, data: any, config?: any) => Promise<T>;
   delete: (resource: string, id: string | number, config?: any) => Promise<void>;
+  
+  // 自定义业务 API 方法（用于 useCustom）
+  custom: <T = any>(params: CustomRequestParams) => Promise<T>;
+  
   // 可选方法
   export?: (resource: string, config?: any) => Promise<Blob>;
   upload?: (resource: string, file: File, config?: any) => Promise<any>;
 }
 
 // 重新导出所有类型
-export type { User, UserService } from './user.types';
-export type { Statistics, StatisticsService } from './statistics.types';
-export type { UserReport, UserReportService } from './report.types';
+export type { User, UserRole, Permission } from './user.types';
+export type { Statistics } from './statistics.types';
+export type { UserReport } from './report.types';

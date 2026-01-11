@@ -2,396 +2,345 @@
 
 ## 架构概述
 
-本项目采用**数据层与展示层分离**的架构模式，确保展示层可以完全独立于数据层，便于在不同平台（Web、H5、移动端等）复用展示层代码。
+本项目**充分利用 Refine 框架**，采用极简分层架构：
+- AI 快速理解和生成代码
+- 开发者快速上手
+- 后续二次开发
+
+## 核心理念
+
+> **不要重复造轮子，直接使用 Refine！**
+
+- **CRUD 操作**：直接使用 Refine 的 `useList`, `useOne`, `useCreate`, `useUpdate`, `useDelete`
+- **业务 API**：直接使用 Refine 的 `useCustom`
+- **用户身份**：直接使用 Refine 的 `useGetIdentity`, `useLogout`
+- **认证授权**：使用 Refine 的 `authProvider`
+- **数据缓存**：由 Refine 的 React Query 自动处理
 
 ## 目录结构
 
 ```
 src/
-├── types/              # 类型定义层（共享）
-│   ├── index.ts        # 基础类型定义
-│   └── services.ts     # 服务接口类型定义
+├── types/              # 类型定义
+│   ├── index.ts        # 类型导出
+│   ├── user.types.ts   # 用户类型
+│   └── ...
 │
-├── providers/          # 数据层：外部服务集成
-│   ├── authProvider.ts # 认证提供者
-│   └── dataProvider.ts # 数据提供者
+├── hooks/              # 全局通用 Hooks（多处复用）
+│   └── usePermissions.ts   # 权限检查
 │
-├── services/           # 数据层：业务逻辑和数据获取
-│   ├── user.service.ts
-│   ├── statistics.service.ts
-│   └── index.ts
+├── providers/          # Refine Providers
+│   ├── data.provider.ts    # 数据提供者
+│   └── auth.provider.ts    # 认证提供者
 │
-├── components/         # 展示层：纯展示组件（Presenter）
-│   ├── layout/        # 布局组件
-│   └── dashboard/     # Dashboard 组件
+├── repository/         # HTTP 实现层
+│   ├── data.repository.ts  # 数据 API
+│   └── auth.repository.ts  # 认证 API
 │
-├── containers/         # 容器层：连接数据层和展示层
-│   ├── HeaderContainer.tsx
-│   ├── DashboardContainer.tsx
-│   └── index.ts
+├── mock/               # Mock 数据层
+│   ├── data.mock.repository.ts
+│   └── mock_data/
 │
-└── pages/              # 页面层：组合容器和布局
-    ├── login/
-    └── dashboard/
+├── components/         # 展示组件
+│   ├── layout/         # 布局组件
+│   ├── dashboard/      # Dashboard 组件
+│   └── auth/           # 权限组件
+│
+├── pages/              # 页面组件（直接使用 Refine hooks）
+│   ├── dashboard/
+│   │   └── index.tsx       # 页面 + useCustom
+│   ├── users/
+│   │   ├── list.tsx        # useTable
+│   │   ├── create.tsx      # useForm
+│   │   └── edit.tsx        # useForm
+│   └── login/
+│
+└── config/             # 配置
+    ├── project.config.tsx  # 项目配置
+    └── theme.config.ts     # 主题配置
 ```
+
+## Hooks 放置原则
+
+采用**就近原则**：
+
+| 场景 | 放置位置 | 示例 |
+|------|----------|------|
+| 全局复用 | `hooks/` | `usePermissions` |
+| 页面特定 | `pages/xxx/` | `pages/orders/useOrderFilter.ts` |
+| 组件特定 | `components/xxx/` | `components/user-card/useUserCard.ts` |
+
+**核心原则**：优先直接使用 Refine hooks，只有当逻辑确实需要复用或封装时才抽取。
 
 ## 架构层次
 
-### 1. 数据层（Data Layer）
-
-**职责**：负责数据获取、业务逻辑处理和状态管理
-
-#### 1.1 Providers（提供者）
-- 位置：`src/providers/`
-- 职责：集成外部服务（API、认证等）
-- 示例：`authProvider.ts`、`dataProvider.ts`
-
-#### 1.2 Services（服务）
-- 位置：`src/services/`
-- 职责：封装业务逻辑和数据获取
-- 特点：
-  - 使用 Hooks 形式（如 `useUserService`）
-  - 通过 Providers 调用 API
-  - 可以访问 Stores 进行状态管理
-- 示例：`user.service.ts`、`statistics.service.ts`
-
-#### 1.3 状态管理说明
-- **数据缓存**：由 Refine 的 React Query 自动处理，无需手动管理
-- **UI 状态**：可以通过以下方式管理：
-  - React Context（适用于简单的全局 UI 状态）
-  - URL 参数（适用于可分享的状态，如筛选条件）
-  - localStorage（适用于需要持久化的用户偏好）
-  - 组件本地状态（适用于组件内部状态）
-- **全局消息**：由 Refine 的 `notificationProvider` 处理
-
-### 2. 类型定义层（Types Layer）
-
-**职责**：定义共享类型，供数据层和展示层使用
-
-- 位置：`src/types/`
-- 特点：
-  - 展示层**只能**导入类型定义，不能导入 services 或 stores
-  - 数据层和展示层共享类型定义
-- 示例：`User`、`Statistics`、`UserService`
-
-### 3. 展示层（Presentation Layer）
-
-**职责**：纯展示，不包含任何业务逻辑
-
-#### 3.1 Components（展示组件）
-- 位置：`src/components/`
-- 命名：以 `Presenter` 结尾（如 `HeaderPresenter`、`StatisticsPresenter`）
-- 特点：
-  - **纯函数组件**，只接收 props
-  - **不导入** services、stores 或 providers
-  - **不包含**任何业务逻辑
-  - 所有数据通过 props 传入
-  - 所有交互通过回调函数处理
-- 示例：
-  ```tsx
-  // ✅ 正确：纯展示组件
-  export const HeaderPresenter = ({ user, onLogout }: HeaderPresenterProps) => {
-    return <div>...</div>;
-  };
-  
-  // ❌ 错误：不应该在展示组件中导入服务
-  import { useUserService } from '@/services'; // 禁止！
-  ```
-
-#### 3.2 Containers（容器组件）
-- 位置：`src/containers/`
-- 职责：
-  - 从数据层获取数据（主要通过 services）
-  - 处理业务逻辑
-  - 将数据传递给展示组件
-  - 处理展示组件的交互回调
-- 特点：
-  - **主要通过 Services 获取业务数据**
-  - 对于纯 UI 状态（如侧边栏折叠），可以直接访问 Stores
-  - Services 内部可以更新 Stores 来缓存数据
-- 示例：
-  ```tsx
-  export const HeaderContainer = () => {
-    // ✅ 正确：容器组件可以导入服务
-    const userService = useUserService();
-    
-    const handleLogout = async () => {
-      await userService.logout();
-    };
-    
-    // 将数据传递给展示组件
-    return <HeaderPresenter user={userService.user} onLogout={handleLogout} />;
-  };
-  ```
-
-#### 3.3 Pages（页面组件）
-- 位置：`src/pages/`
-- 职责：组合容器组件和布局
-- 特点：尽可能简单，主要负责路由和布局组合
-
-## 架构原则
-
-### 1. 依赖方向
-
 ```
-Pages → Containers → Components (展示层)
-         ↓
-      Services (数据层)
-         ↓
-      Providers (数据层 - API 适配器)
+┌─────────────────────────────────────────────────────────┐
+│                      Pages 页面层                        │
+│  直接使用 Refine hooks (useTable, useCustom 等)         │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│              Refine Core (内置 React Query)             │
+│  useList, useOne, useCreate, useUpdate, useCustom...   │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│              Providers (dataProvider, authProvider)     │
+│  将 Refine 请求转发给 Repository                        │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│              Repository (HTTP 实现)                      │
+│  真实 API / Mock 数据                                    │
+└─────────────────────────────────────────────────────────┘
 ```
 
-**规则**：
-- 展示层（Components）**不能**依赖数据层（Services/Providers）
-- 容器层（Containers）**主要通过 Services 获取数据**
-- 数据缓存由 Refine 的 React Query 自动处理，无需手动管理
-- 页面层（Pages）**只能**依赖容器层
+## 开发模式
 
-### 2. 数据流向
+### 1. CRUD 页面开发
 
-```
-Providers (API) → Services (业务逻辑) → Containers → Components
-                                          ↑         ↓
-                                          └─────────┘
-                                          (回调函数)
-```
+直接使用 Refine 组件和 hooks：
 
-**说明**：
-- Services 从 Providers 获取数据
-- Refine 的 React Query 自动处理数据缓存、重试、刷新等
-- Containers 通过 Services 获取数据，无需关心缓存逻辑
-- 数据缓存完全由 Refine 框架管理，无需手动处理
+```tsx
+// pages/users/list.tsx
+import { List, useTable, EditButton, DeleteButton } from '@refinedev/antd';
+import { Table } from 'antd';
 
-### 3. 类型共享
+export const UserList = () => {
+  const { tableProps } = useTable();
 
-- 展示层和容器层共享类型定义（`src/types/`）
-- 展示层**只能**导入类型，不能导入服务
-
-## 如何创建新功能
-
-### 示例：创建用户列表功能
-
-#### 1. 定义类型（`src/types/index.ts`）
-```typescript
-export interface UserListParams {
-  page: number;
-  limit: number;
-}
-```
-
-#### 2. 创建服务（`src/services/user-list.service.ts`）
-```typescript
-export const useUserListService = () => {
-  // 数据获取逻辑
-  return { users, loading, fetchUsers };
-};
-```
-
-#### 3. 创建展示组件（`src/components/user-list/user-list.presenter.tsx`）
-```typescript
-export interface UserListPresenterProps {
-  users: User[];
-  loading: boolean;
-  onRefresh: () => void;
-}
-
-export const UserListPresenter = ({ users, loading, onRefresh }: UserListPresenterProps) => {
-  // 纯展示逻辑
-};
-```
-
-#### 4. 创建容器组件（`src/containers/UserListContainer.tsx`）
-```typescript
-export const UserListContainer = () => {
-  const userListService = useUserListService();
-  
   return (
-    <UserListPresenter
-      users={userListService.users}
-      loading={userListService.loading}
-      onRefresh={userListService.fetchUsers}
-    />
+    <List>
+      <Table {...tableProps} rowKey="id">
+        <Table.Column dataIndex="username" title="用户名" />
+        <Table.Column dataIndex="email" title="邮箱" />
+        <Table.Column 
+          title="操作"
+          render={(_, record) => (
+            <>
+              <EditButton recordItemId={record.id} />
+              <DeleteButton recordItemId={record.id} />
+            </>
+          )}
+        />
+      </Table>
+    </List>
   );
 };
 ```
 
-#### 5. 创建页面（`src/pages/users/index.tsx`）
-```typescript
-export const UsersPage = () => {
-  return <UserListContainer />;
+### 2. 业务 API 开发
+
+直接使用 `useCustom`：
+
+```tsx
+// pages/dashboard/index.tsx
+import { useCustom } from '@refinedev/core';
+import type { Statistics } from '@/types';
+
+export const Dashboard = () => {
+  const { data, isLoading } = useCustom<Statistics>({
+    url: '/dashboard/statistics',
+    method: 'get',
+    queryOptions: {
+      staleTime: 5 * 60 * 1000, // 5 分钟缓存
+    },
+  });
+
+  const statistics = data?.data || { totalUsers: 0, totalOrders: 0 };
+
+  return <StatisticsPresenter statistics={statistics} loading={isLoading} />;
 };
 ```
 
-## 如何适配 H5
+### 3. 用户身份信息
 
-由于展示层完全独立于数据层，创建 H5 版本只需要：
+直接使用 Refine hooks：
 
-1. **复用展示组件**：直接使用 `src/components/` 中的展示组件
-2. **创建 H5 容器**：在 H5 项目中创建新的容器组件，连接 H5 的数据层
-3. **保持类型一致**：确保类型定义保持一致
+```tsx
+// components/layout/header.tsx
+import { useGetIdentity, useLogout } from '@refinedev/core';
+import type { User } from '@/types';
 
-### H5 项目结构示例
+export const Header = () => {
+  const { data: user } = useGetIdentity<User>();
+  const { mutate: logout } = useLogout();
 
+  return (
+    <div>
+      <span>{user?.username}</span>
+      <button onClick={() => logout()}>退出</button>
+    </div>
+  );
+};
 ```
-h5-project/
-├── components/         # 复用 Web 项目的展示组件
-│   └── (从 Web 项目复制或共享)
-├── containers/         # H5 专用的容器组件
-│   └── (连接 H5 的数据层)
-├── services/          # H5 的数据层
-└── types/             # 共享类型定义
+
+### 4. Mock 数据开发
+
+在 `mock/data.mock.repository.ts` 的 `custom` 方法中添加 Mock 路由：
+
+```tsx
+// mock/data.mock.repository.ts
+custom: async <T = any>(params: CustomRequestParams): Promise<T> => {
+  const { url, method } = params;
+  
+  if (url === '/dashboard/statistics' && method === 'get') {
+    return { totalUsers: 100, totalOrders: 500 } as T;
+  }
+  
+  if (url === '/orders/summary' && method === 'get') {
+    return { total: 1000, pending: 50 } as T;
+  }
+  
+  throw new Error(`Mock API not found: ${method.toUpperCase()} ${url}`);
+},
+```
+
+## 添加新功能指南
+
+### 添加新的 CRUD 资源
+
+1. **定义类型** (`types/xxx.types.ts`)
+2. **添加路由和菜单** (`config/project.config.tsx`)
+3. **创建页面** (`pages/xxx/list.tsx`, `create.tsx`, `edit.tsx`, `show.tsx`)
+4. **添加 Mock 数据** (`mock/mock_data/xxx.ts`)
+
+### 添加新的业务 API
+
+1. **定义返回类型** (`types/xxx.types.ts`)
+2. **在页面中使用 `useCustom`**
+3. **添加 Mock 路由** (`mock/data.mock.repository.ts`)
+
+### 示例：添加订单统计 API
+
+```tsx
+// 1. 类型定义 - types/order.types.ts
+export interface OrderSummary {
+  total: number;
+  pending: number;
+  completed: number;
+}
+
+// 2. 页面使用 - pages/orders/dashboard.tsx
+import { useCustom } from '@refinedev/core';
+import type { OrderSummary } from '@/types';
+
+export const OrderDashboard = () => {
+  const { data, isLoading } = useCustom<OrderSummary>({
+    url: '/orders/summary',
+    method: 'get',
+  });
+
+  const summary = data?.data;
+
+  if (isLoading) return <Spin />;
+
+  return (
+    <div>
+      <p>总订单: {summary?.total}</p>
+      <p>待处理: {summary?.pending}</p>
+    </div>
+  );
+};
+
+// 3. Mock 数据 - mock/data.mock.repository.ts
+// 在 custom 方法中添加：
+if (url === '/orders/summary' && method === 'get') {
+  return { total: 1000, pending: 50, completed: 950 } as T;
+}
 ```
 
 ## 最佳实践
 
 ### ✅ 推荐做法
 
-1. **展示组件保持纯净**
+1. **直接使用 Refine hooks**
    ```tsx
    // ✅ 正确
-   export const UserCard = ({ user, onClick }: UserCardProps) => {
-     return <div onClick={onClick}>{user.name}</div>;
-   };
+   const { tableProps } = useTable();
+   const { data } = useOne({ resource: 'users', id: userId });
+   const { data } = useCustom({ url: '/api/stats', method: 'get' });
    ```
 
-2. **容器组件处理业务逻辑**
+2. **利用 React Query 的缓存**
    ```tsx
-   // ✅ 正确
-   export const UserCardContainer = () => {
-     const userService = useUserService();
-     const handleClick = () => { /* 业务逻辑 */ };
-     return <UserCard user={userService.user} onClick={handleClick} />;
-   };
+   // ✅ 正确：设置 staleTime 避免重复请求
+   useCustom({
+     url: '/api/data',
+     method: 'get',
+     queryOptions: { staleTime: 5 * 60 * 1000 },
+   });
    ```
 
-3. **使用类型定义**
+3. **复杂逻辑就近放置**
    ```tsx
-   // ✅ 正确
-   import type { User } from '@/types';
+   // pages/orders/useOrderFilter.ts - 页面特定逻辑
+   export const useOrderFilter = () => {
+     const [filters, setFilters] = useState(...);
+     // 复杂的筛选逻辑
+     return { filters, updateFilter };
+   };
    ```
 
 ### ❌ 避免做法
 
-1. **不要在展示组件中导入服务**
+1. **不要手动管理 loading/error 状态**
    ```tsx
-   // ❌ 错误
-   import { useUserService } from '@/services';
-   export const UserCard = () => {
-     const userService = useUserService(); // 禁止！
-   };
-   ```
-
-2. **不要在页面组件中直接使用服务**
-   ```tsx
-   // ❌ 错误（应该通过容器组件）
-   export const UsersPage = () => {
-     const userService = useUserService(); // 应该放在 Container 中
-   };
-   ```
-
-3. **不要手动管理数据缓存**
-   ```tsx
-   // ❌ 错误：不需要手动管理缓存
-   export const UserListContainer = () => {
-     const [users, setUsers] = useState([]);
-     useEffect(() => {
-       fetchUsers().then(setUsers); // 手动管理缓存
-     }, []);
-     return <UserListPresenter users={users} />;
-   };
-   
-   // ✅ 正确：使用 Service，Refine 自动处理缓存
-   export const UserListContainer = () => {
-     const userService = useUserListService(); // Refine 自动缓存
-     return <UserListPresenter users={userService.users} />;
-   };
-   ```
-
-## 状态管理最佳实践
-
-### ✅ 推荐的状态管理方式
-
-1. **数据缓存：由 Refine 自动处理**
-   ```tsx
-   // ✅ 正确：Refine 的 React Query 自动处理缓存
-   export const useUserListService = () => {
-     const { data, isLoading } = useList({ resource: 'users' });
-     // 数据自动缓存，无需手动管理
-     return { users: data?.data, loading: isLoading };
-   };
-   ```
-
-2. **UI 状态：使用 React Context（如果需要）**
-   ```tsx
-   // ✅ 正确：简单的全局 UI 状态使用 Context
-   const ThemeContext = createContext({ theme: 'light', setTheme: () => {} });
-   
-   export const LayoutContainer = () => {
-     const { theme } = useContext(ThemeContext);
-     return <LayoutPresenter theme={theme} />;
-   };
-   ```
-
-3. **用户偏好：使用 localStorage**
-   ```tsx
-   // ✅ 正确：需要持久化的用户偏好使用 localStorage
-   export const useUserPreferences = () => {
-     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-       return localStorage.getItem('sidebarCollapsed') === 'true';
-     });
-     
-     const toggleSidebar = () => {
-       const newValue = !sidebarCollapsed;
-       setSidebarCollapsed(newValue);
-       localStorage.setItem('sidebarCollapsed', String(newValue));
-     };
-     
-     return { sidebarCollapsed, toggleSidebar };
-   };
-   ```
-
-4. **可分享状态：使用 URL 参数**
-   ```tsx
-   // ✅ 正确：筛选条件等可分享状态使用 URL
-   export const UserListContainer = () => {
-     const [searchParams, setSearchParams] = useSearchParams();
-     const status = searchParams.get('status') || 'all';
-     // ...
-   };
-   ```
-
-### ❌ 不推荐的做法
-
-1. **手动管理数据缓存**
-   ```tsx
-   // ❌ 错误：不需要手动管理缓存
-   const [users, setUsers] = useState([]);
+   // ❌ 错误：React Query 已经处理了
+   const [loading, setLoading] = useState(false);
    useEffect(() => {
-     fetchUsers().then(setUsers);
+     setLoading(true);
+     fetchData().then(setData).finally(() => setLoading(false));
    }, []);
    ```
 
-2. **使用全局 Store 管理业务数据**
+2. **不要创建多余的抽象层**
    ```tsx
-   // ❌ 错误：业务数据应该通过 Services 获取
-   const users = useUserStore(state => state.users);
+   // ❌ 错误：不需要 Service/Container 层
+   const useStatistics = () => {
+     const { data } = useCustom({ url: '/stats', method: 'get' });
+     return { statistics: data?.data };
+   };
+   
+   // ✅ 正确：直接在页面使用
+   const { data } = useCustom({ url: '/stats', method: 'get' });
    ```
+
+## 与 AI 协作开发
+
+本架构设计特别考虑了 AI 辅助开发：
+
+1. **极简层级**：页面 → Refine → Provider → Repository
+2. **模式统一**：所有页面遵循相同模式
+3. **命名规范**：类型以 `types` 结尾，hooks 以 `use` 开头
+4. **示例丰富**：参考现有代码即可快速开发
+
+### AI 开发提示词示例
+
+```
+请帮我创建一个订单管理模块：
+1. 参考 pages/users/ 创建 CRUD 页面
+2. 在 Dashboard 页面添加订单统计，使用 useCustom 调用 /orders/summary
+3. 在 mock/data.mock.repository.ts 添加 Mock 数据
+```
 
 ## 总结
 
-通过这种架构设计：
+| 场景 | 解决方案 |
+|------|----------|
+| CRUD 列表 | `useTable` + `<List>` |
+| CRUD 创建 | `useForm` + `<Create>` |
+| CRUD 编辑 | `useForm` + `<Edit>` |
+| CRUD 详情 | `useShow` + `<Show>` |
+| 业务 API | `useCustom` |
+| 用户身份 | `useGetIdentity` |
+| 登出 | `useLogout` |
+| 数据缓存 | React Query 自动处理 |
+| 权限控制 | `usePermissions` + `<CanAccess>` |
+| Mock 开发 | `VITE_USE_MOCK=true` |
 
-1. ✅ **展示层完全独立**：可以在任何平台复用
-2. ✅ **数据层统一管理**：业务逻辑集中处理
-3. ✅ **数据缓存自动化**：Refine 的 React Query 自动处理，无需手动管理
-4. ✅ **类型安全**：通过 TypeScript 类型定义保证接口一致性
-5. ✅ **易于测试**：展示组件可以独立测试
-6. ✅ **易于维护**：职责清晰，代码组织良好
-7. ✅ **架构简洁**：无需额外的状态管理库，减少复杂度
-
-**状态管理总结**：
-- ✅ **数据缓存**：由 Refine 的 React Query 自动处理（无需 Stores）
-- ✅ **UI 状态**：使用 React Context、localStorage 或组件状态
-- ✅ **全局消息**：由 Refine 的 notificationProvider 处理
-- ❌ **不需要全局 Store**：减少复杂度，提高可维护性
-
+**核心原则：直接使用 Refine，不要封装！**

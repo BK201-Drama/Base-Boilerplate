@@ -1,15 +1,14 @@
 /**
- * Dashboard Page - Dashboard 页面组件
- * 
- * 页面层：组合容器组件和布局
- * 页面组件应该尽可能简单，主要负责路由和布局组合
+ * Dashboard 页面
+ *
+ * 使用就近放置的 useDashboardData hook
  */
 
-import { DashboardContainer } from '@/containers/DashboardContainer';
+import { StatisticsPresenter } from '@/components/dashboard';
+import { useDashboardData } from './useDashboardData';
 
 export const Dashboard = () => {
-  return <DashboardContainer />;
+  const { statistics, isLoading } = useDashboardData();
+
+  return <StatisticsPresenter statistics={statistics} loading={isLoading} />;
 };
-
-
-

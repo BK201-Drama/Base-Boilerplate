@@ -2,13 +2,16 @@
  * Mock Data Repository 实现
  * 
  * 处理数据相关的 Mock API 调用
+ * 支持标准 CRUD 和自定义业务 API
  */
 
 import type { DataRepository } from '@/repository/data.repository';
-import type { Statistics } from '@/types';
+import type { Statistics, CustomRequestParams } from '@/types';
 import type { UserReport } from '@/types/report.types';
 import { delay } from './mock.utils';
 import { getAllMockUsers } from './mock_data/user';
+
+// ==================== Mock 数据 ====================
 
 // Mock 统计数据
 const mockStatistics: Statistics = {
@@ -21,8 +24,64 @@ const mockStatistics: Statistics = {
 // 内存中的用户数据（支持 CRUD 操作）
 let mockUserData = getAllMockUsers(100);
 
+// ==================== Mock API 路由处理 ====================
+
+/**
+ * Mock API 路由映射
+ * 
+ * 用于 custom 方法处理自定义业务 API
+ * 添加新的业务 API 时，只需在这里添加路由处理即可
+ */
+const mockApiRoutes: Record<string, (params: CustomRequestParams) => Promise<any>> = {
+  // 统计数据 API
+  '/dashboard/statistics': async () => {
+    await delay(500);
+    return mockStatistics;
+  },
+
+  // 用户报告 API（带参数）
+  '/users/:userId/report': async (params) => {
+    await delay(500);
+    // 从 URL 中提取 userId
+    const match = params.url.match(/\/users\/([^/]+)\/report/);
+    const userId = match?.[1] || 'unknown';
+    
+    return {
+      userId,
+      username: `user_${userId}`,
+      totalOrders: Math.floor(Math.random() * 100),
+      totalAmount: Math.floor(Math.random() * 10000),
+      lastLoginAt: new Date().toISOString(),
+      status: 'active',
+    } as UserReport;
+  },
+};
+
+/**
+ * 匹配 URL 到路由处理器
+ */
+const matchRoute = (url: string): ((params: CustomRequestParams) => Promise<any>) | null => {
+  // 先尝试精确匹配
+  if (mockApiRoutes[url]) {
+    return mockApiRoutes[url];
+  }
+
+  // 尝试模式匹配（支持 :param 格式）
+  for (const [pattern, handler] of Object.entries(mockApiRoutes)) {
+    const regex = new RegExp('^' + pattern.replace(/:[^/]+/g, '[^/]+') + '$');
+    if (regex.test(url)) {
+      return handler;
+    }
+  }
+
+  return null;
+};
+
+// ==================== Repository 实现 ====================
+
 export const dataMockRepository: DataRepository = {
-  // 通用 CRUD 方法
+  // ==================== 标准 CRUD 方法 ====================
+  
   getOne: async <T = any>(resource: string, id: string | number): Promise<T> => {
     await delay(300);
     
@@ -140,24 +199,24 @@ export const dataMockRepository: DataRepository = {
     }
   },
 
-  // 业务方法
-  getStatistics: async (): Promise<Statistics> => {
-    await delay(500);
-    return mockStatistics;
-  },
+  // ==================== 自定义业务 API ====================
+  
+  /**
+   * 处理自定义业务 API 请求
+   * 
+   * 通过 mockApiRoutes 路由映射来处理不同的业务 API
+   * 添加新的业务 API 时，只需在 mockApiRoutes 中添加即可
+   */
+  custom: async <T = any>(params: CustomRequestParams): Promise<T> => {
+    const handler = matchRoute(params.url);
+    
+    if (handler) {
+      return await handler(params) as T;
+    }
 
-  getUserReport: async (userId: string): Promise<UserReport> => {
-    await delay(500);
-    return {
-      userId,
-      username: `user_${userId}`,
-      totalOrders: Math.floor(Math.random() * 100),
-      totalAmount: Math.floor(Math.random() * 10000),
-      lastLoginAt: new Date().toISOString(),
-      status: 'active',
-    };
+    // 未匹配的路由，返回通用 mock 响应
+    await delay(300);
+    console.warn(`[Mock] Unhandled custom API: ${params.method.toUpperCase()} ${params.url}`);
+    return { success: true, message: 'Mock response' } as T;
   },
 };
-
-
-

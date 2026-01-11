@@ -55,39 +55,40 @@ yarn build
 
 ```
 src/
-├── components/         # 展示层：纯展示组件
-│   ├── auth/          # 权限相关组件
-│   ├── dashboard/     # Dashboard 组件
-│   ├── error/         # 错误处理组件
-│   └── layout/        # 布局组件
-├── config/            # 配置文件
-│   ├── project.config.tsx  # 项目主配置
-│   ├── theme.config.ts     # 主题配置
-│   └── ...
-├── containers/        # 容器层：连接数据层和展示层
-├── hooks/             # 自定义 Hooks
-├── http/              # HTTP 客户端
-├── i18n/              # 国际化
-├── mock/              # Mock 数据
-├── pages/             # 页面组件
-├── providers/         # Refine Providers
-├── repository/        # 数据仓库
-├── services/          # 业务服务层
-├── types/             # 类型定义
-└── utils/             # 工具函数
+├── types/              # 类型定义
+├── hooks/              # 自定义 Hooks
+│   ├── usePermissions.ts   # 权限检查
+│   └── queries/            # 业务查询 hooks (useCustom)
+├── providers/          # Refine Providers
+├── repository/         # HTTP 实现层
+├── mock/               # Mock 数据层
+├── components/         # 展示组件
+│   ├── auth/           # 权限组件
+│   ├── dashboard/      # Dashboard 组件
+│   ├── error/          # 错误处理组件
+│   └── layout/         # 布局组件
+├── pages/              # 页面（直接使用 Refine hooks）
+├── config/             # 配置文件
+├── http/               # HTTP 客户端
+├── i18n/               # 国际化
+└── utils/              # 工具函数
 ```
 
 ## 架构设计
 
-项目采用**数据层与展示层分离**的架构模式：
+项目**充分利用 Refine 框架**，采用简洁的分层架构：
 
 ```
-Pages → Containers → Components (展示层)
-         ↓
-      Services (数据层)
-         ↓
-      Providers → Repository (数据层 - API 适配器)
+Pages (直接使用 Refine hooks)
+   ↓
+Hooks (业务查询 hooks)
+   ↓
+Refine Core (useList, useCustom 等)
+   ↓
+Providers → Repository
 ```
+
+**核心理念**：不要重复造轮子，充分利用 Refine！
 
 详细架构说明请参考 [ARCHITECTURE.md](./ARCHITECTURE.md)
 
@@ -139,7 +140,11 @@ Pages → Containers → Components (展示层)
 
 ### 添加业务接口
 
-请参考 [业务接口添加指南](./业务接口添加指南.md)
+1. 在 `hooks/queries/` 创建查询 Hook（使用 `useCustom`）
+2. 在 `mock/data.mock.repository.ts` 添加 Mock 路由
+3. 在页面中使用 Hook
+
+详细指南请参考 [AI_DEVELOPMENT_GUIDE.md](./AI_DEVELOPMENT_GUIDE.md)
 
 ## 代码规范
 
@@ -155,7 +160,7 @@ Pages → Containers → Components (展示层)
 ## 相关文档
 
 - [架构设计文档](./ARCHITECTURE.md)
-- [业务接口添加指南](./业务接口添加指南.md)
+- [AI 开发指南](./AI_DEVELOPMENT_GUIDE.md) - 便于 AI 辅助开发
 - [开发指南](./DEVELOPMENT_GUIDE.md)
 
 ## 技术栈

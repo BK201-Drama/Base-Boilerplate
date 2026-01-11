@@ -1,7 +1,11 @@
 /**
  * Data Provider
  * 
- * 通过依赖注入 Repository，Provider 只负责调用，不关心数据来源
+ * Refine 的数据提供者，负责：
+ * 1. 标准 CRUD 操作 (getList, getOne, create, update, delete)
+ * 2. 自定义业务 API (custom) - 支持 useCustom hook
+ * 
+ * 通过依赖注入 Repository，Provider 只负责调用，不关心数据来源（真实 API / Mock）
  */
 
 import type { DataProvider } from '@refinedev/core';
@@ -10,32 +14,34 @@ import type { Repository } from '@/repository';
 // 创建 Provider 工厂函数
 export const createDataProvider = (repository: Repository): DataProvider => {
   return {
-  getList: async ({ resource, pagination, filters, sorters }) => {
-    const paginationObj = pagination as { current?: number; pageSize?: number; mode?: string } | undefined;
-    const page = (paginationObj?.mode === 'off' ? undefined : paginationObj?.current) ?? 1;
-    const pageSize = paginationObj?.pageSize ?? 10;
+    // ==================== 标准 CRUD 操作 ====================
+    
+    getList: async ({ resource, pagination, filters, sorters }) => {
+      const paginationObj = pagination as { current?: number; pageSize?: number; mode?: string } | undefined;
+      const page = (paginationObj?.mode === 'off' ? undefined : paginationObj?.current) ?? 1;
+      const pageSize = paginationObj?.pageSize ?? 10;
 
-    const params: any = {
-      page,
-      limit: pageSize,
-    };
+      const params: Record<string, any> = {
+        page,
+        limit: pageSize,
+      };
 
-    // 处理排序
-    if (sorters && sorters.length > 0) {
-      const sorter = sorters[0];
-      params.sort = `${sorter.field}:${sorter.order === 'asc' ? 'asc' : 'desc'}`;
-    }
+      // 处理排序
+      if (sorters && sorters.length > 0) {
+        const sorter = sorters[0];
+        params.sort = `${sorter.field}:${sorter.order === 'asc' ? 'asc' : 'desc'}`;
+      }
 
-    // 处理过滤
-    if (filters && filters.length > 0) {
-      filters.forEach((filter) => {
-        if (filter.operator === 'eq') {
-          params[filter.field] = filter.value;
-        } else if (filter.operator === 'contains') {
-          params[`${filter.field}_like`] = filter.value;
-        }
-      });
-    }
+      // 处理过滤
+      if (filters && filters.length > 0) {
+        filters.forEach((filter) => {
+          if (filter.operator === 'eq') {
+            params[filter.field] = filter.value;
+          } else if (filter.operator === 'contains') {
+            params[`${filter.field}_like`] = filter.value;
+          }
+        });
+      }
 
       const result = await repository.getMany(resource, { params });
       return {
@@ -76,14 +82,39 @@ export const createDataProvider = (repository: Repository): DataProvider => {
       return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     },
 
-    custom: async ({ url }) => {
-      // 对于业务接口，建议在 Service 层直接使用 Repository
-      // 而不是通过 dataProvider.custom 处理
-      // 这样可以保持 dataProvider 简洁，只处理标准 CRUD
-      throw new Error(
-        `Custom request is not supported. Please use Repository methods directly in Service layer for '${url}'. ` +
-        `See examples in src/services/statistics.service.ts or src/services/report.service.ts`
-      );
+    // ==================== 自定义业务 API ====================
+    
+    /**
+     * 处理自定义业务 API 请求
+     * 
+     * 用于 useCustom hook 调用非标准 CRUD 的业务接口
+     * 例如：统计数据、报告、导出等
+     * 
+     * @example
+     * ```tsx
+     * // 在 hooks/queries/ 中创建业务 hook
+     * const { data } = useCustom({
+     *   url: '/dashboard/statistics',
+     *   method: 'get',
+     * });
+     * ```
+     */
+    custom: async ({ url, method, payload, query, headers }) => {
+      // 调用 Repository 的通用请求方法
+      // 类型转换以匹配 Repository 接口
+      const supportedMethods = ['get', 'post', 'put', 'patch', 'delete'] as const;
+      const normalizedMethod = supportedMethods.includes(method as any) 
+        ? method as 'get' | 'post' | 'put' | 'patch' | 'delete'
+        : 'get';
+      
+      const data = await repository.custom({
+        url,
+        method: normalizedMethod,
+        payload,
+        query: query as Record<string, any> | undefined,
+        headers,
+      });
+      return { data };
     },
   };
 };
