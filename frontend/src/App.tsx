@@ -18,9 +18,12 @@ import './i18n';
 
 import { dataProvider, authProvider } from './providers';
 import { Layout } from './components/layout';
-import { Login } from './pages/login';
-import { Dashboard } from './pages/dashboard';
-import { UserList, UserCreate, UserEdit, UserShow } from './pages/users';
+import { 
+  getResources,
+  getProtectedRoutes,
+  getPublicRoutes,
+  getRefineOptions,
+} from './config';
 
 function App() {
   const { i18n, t } = useTranslation();
@@ -36,34 +39,11 @@ function App() {
               authProvider={authProvider}
               routerProvider={routerBindings}
               notificationProvider={useNotificationProvider()}
-              resources={[
-                {
-                  name: 'dashboard',
-                  list: '/',
-                  meta: {
-                    label: t('common.dashboard'),
-                    icon: '📊',
-                  },
-                },
-                {
-                  name: 'users',
-                  list: '/users',
-                  create: '/users/create',
-                  edit: '/users/edit/:id',
-                  show: '/users/show/:id',
-                  meta: {
-                    label: '用户管理',
-                    icon: '👥',
-                  },
-                },
-              ]}
-              options={{
-                syncWithLocation: true,
-                warnWhenUnsavedChanges: true,
-                projectId: 'base-boilerplate',
-              }}
+              resources={getResources(t)}
+              options={getRefineOptions()}
             >
               <Routes>
+                {/* 受保护的路由 */}
                 <Route
                   element={
                     <Layout>
@@ -71,15 +51,11 @@ function App() {
                     </Layout>
                   }
                 >
-                  <Route index element={<Dashboard />} />
-                  <Route path="/users">
-                    <Route index element={<UserList />} />
-                    <Route path="create" element={<UserCreate />} />
-                    <Route path="edit/:id" element={<UserEdit />} />
-                    <Route path="show/:id" element={<UserShow />} />
-                  </Route>
+                  {getProtectedRoutes()}
                 </Route>
-                <Route path="/login" element={<Login />} />
+                {/* 公共路由 */}
+                {getPublicRoutes()}
+                {/* 404 路由 */}
                 <Route path="*" element={<ErrorComponent />} />
               </Routes>
               <RefineKbar />

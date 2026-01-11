@@ -1,10 +1,17 @@
 import { Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { projectInfo } from '@/config';
 
 const { Title: AntTitle } = Typography;
 
 export const Title = ({ collapsed }: { collapsed: boolean }) => {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
+  const locale = i18n.language === 'en' ? 'en' : 'zh';
+  
+  // 从配置文件获取项目名称
+  const appName = collapsed 
+    ? projectInfo.nameShort[locale]
+    : projectInfo.name[locale];
 
   return (
     <div
@@ -18,7 +25,7 @@ export const Title = ({ collapsed }: { collapsed: boolean }) => {
           collapsed ? 'text-sm' : 'text-lg'
         }`}
       >
-        {collapsed ? t('common.appNameShort') : t('common.appName')}
+        {appName}
       </AntTitle>
     </div>
   );

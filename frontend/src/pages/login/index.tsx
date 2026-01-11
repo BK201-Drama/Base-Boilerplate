@@ -1,8 +1,10 @@
 import { AuthPage } from '@refinedev/antd';
 import { useTranslation } from 'react-i18next';
+import { projectInfo } from '@/config';
 
 export const Login = () => {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
+  const locale = i18n.language === 'en' ? 'en' : 'zh';
 
   return (
     <AuthPage
@@ -15,8 +17,8 @@ export const Login = () => {
       }}
       title={
         <div className="text-center mb-6">
-          <h1>{t('common.appName')}</h1>
-          <p>{t('common.welcome')}</p>
+          <h1>{projectInfo.name[locale]}</h1>
+          <p>{projectInfo.welcome[locale]}</p>
         </div>
       }
     />
