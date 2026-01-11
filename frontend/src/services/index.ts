@@ -7,4 +7,5 @@
 
 export * from './user.service';
 export * from './statistics.service';
+export * from './report.service';
 

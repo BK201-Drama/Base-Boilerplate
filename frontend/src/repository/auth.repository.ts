@@ -5,10 +5,10 @@
  */
 
 import { httpClient } from '@/http';
-import type { User, IPublicRepository } from '@/types';
+import type { User } from '@/types';
 
 // 认证 Repository 接口
-export interface AuthRepository extends IPublicRepository {
+export interface AuthRepository {
   login: (username: string, password: string) => Promise<{ access_token: string; user: User } | null>;
   logout: () => Promise<void>;
   checkAuth: (token: string) => Promise<boolean>;

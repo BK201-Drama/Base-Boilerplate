@@ -14,9 +14,14 @@
  * - 展示层不应该直接使用此 Service
  */
 
-import { useCallback, useMemo } from 'react';
-import { useCustom } from '@refinedev/core';
+import { useCallback, useMemo, useState, useEffect } from 'react';
+import { realRepository } from '@/repository';
+import { mockRepository } from '@/mock';
 import type { StatisticsService, Statistics } from '@/types/statistics.types';
+
+// 根据环境变量选择 Repository
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+const repository = USE_MOCK ? mockRepository : realRepository;
 
 // 默认统计数据
 const DEFAULT_STATISTICS: Statistics = {
@@ -38,48 +43,63 @@ const DEFAULT_STATISTICS: Statistics = {
  * ```
  */
 export const useStatisticsService = (): StatisticsService => {
-  const queryResult = useCustom<Statistics>({
-    url: '/dashboard/statistics',
-    method: 'get',
-  });
+  // 直接使用 Repository，不通过 dataProvider.custom
+  // 这样代码更清晰，dataProvider 保持简洁
+  const [statistics, setStatistics] = useState<Statistics | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // 获取统计数据（带默认值）
-  // useCustom 返回的数据结构：{ data: T }
-  const statistics = useMemo(() => {
-    return (queryResult as any).data?.data || null;
-  }, [(queryResult as any).data]);
+  // 获取统计数据
+  const fetchStatistics = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await repository.getStatistics();
+      setStatistics(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch statistics:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 初始化时获取数据
+  useEffect(() => {
+    fetchStatistics().catch(() => {
+      // 错误已在 fetchStatistics 中处理
+    });
+  }, [fetchStatistics]);
 
   // 获取统计数据（异步方法）
   const getStatistics = useCallback(async (): Promise<Statistics> => {
     // 如果已有缓存数据，直接返回
-    if ((queryResult as any).data?.data) {
-      return (queryResult as any).data.data;
+    if (statistics) {
+      return statistics;
     }
 
-    // 否则触发重新获取
+    // 否则重新获取
     try {
-      const result = await (queryResult as any).refetch();
-      return (result.data?.data as Statistics) || DEFAULT_STATISTICS;
+      return await fetchStatistics();
     } catch (error) {
       // 错误时返回默认值
       console.error('Failed to fetch statistics:', error);
       return DEFAULT_STATISTICS;
     }
-  }, [queryResult]);
+  }, [statistics, fetchStatistics]);
 
   // 刷新统计数据
   const refreshStatistics = useCallback(async (): Promise<void> => {
     try {
-      await (queryResult as any).refetch();
+      await fetchStatistics();
     } catch (error) {
       console.error('Failed to refresh statistics:', error);
       throw error;
     }
-  }, [queryResult]);
+  }, [fetchStatistics]);
 
   return {
     statistics,
-    loading: (queryResult as any).isLoading || false,
+    loading,
     getStatistics,
     refreshStatistics,
   };

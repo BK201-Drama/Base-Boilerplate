@@ -76,16 +76,14 @@ export const createDataProvider = (repository: Repository): DataProvider => {
       return import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
     },
 
-    custom: async ({ url, method }) => {
-      // 特殊处理 statistics 端点
-      if (url === '/dashboard/statistics' && method === 'get') {
-        const statistics = await repository.getStatistics();
-        return { data: statistics as any };
-      }
-
-      // 自定义请求需要 repository 提供相应的实现
-      // 这里可以根据需要扩展 Repository 接口来支持自定义请求
-      throw new Error(`Custom request is not supported. Please implement a specific method in repository for '${url}'`);
+    custom: async ({ url }) => {
+      // 对于业务接口，建议在 Service 层直接使用 Repository
+      // 而不是通过 dataProvider.custom 处理
+      // 这样可以保持 dataProvider 简洁，只处理标准 CRUD
+      throw new Error(
+        `Custom request is not supported. Please use Repository methods directly in Service layer for '${url}'. ` +
+        `See examples in src/services/statistics.service.ts or src/services/report.service.ts`
+      );
     },
   };
 };

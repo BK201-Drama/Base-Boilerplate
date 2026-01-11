@@ -6,11 +6,13 @@
 
 import { httpClient } from '@/http';
 import type { Statistics, IPublicRepository } from '@/types';
+import type { UserReport } from '@/types/report.types';
 
 // 数据 Repository 接口
 export interface DataRepository extends IPublicRepository {
   // 业务方法
   getStatistics: () => Promise<Statistics>;
+  getUserReport: (userId: string) => Promise<UserReport>;
 }
 
 export const dataRepository: DataRepository = {
@@ -42,6 +44,11 @@ export const dataRepository: DataRepository = {
   // 业务方法
   getStatistics: async (): Promise<Statistics> => {
     const response = await httpClient.get('/dashboard/statistics');
+    return response.data;
+  },
+
+  getUserReport: async (userId: string): Promise<UserReport> => {
+    const response = await httpClient.get(`/users/${userId}/report`);
     return response.data;
   },
 };

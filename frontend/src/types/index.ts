@@ -49,3 +49,4 @@ export interface IPublicRepository {
 // 重新导出所有类型
 export type { User, UserService } from './user.types';
 export type { Statistics, StatisticsService } from './statistics.types';
+export type { UserReport, UserReportService } from './report.types';

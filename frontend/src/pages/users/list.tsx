@@ -33,6 +33,7 @@ export const UserList: React.FC<IResourceComponentsProps> = () => {
         </>
       )}
     >
+      {/* @ts-expect-error - antd 版本兼容性问题，@refinedev/antd 期望 antd@^5.23.0 */}
       <Table {...tableProps} rowKey="id">
         <Table.Column
           dataIndex="id"

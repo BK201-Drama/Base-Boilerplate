@@ -8,7 +8,7 @@
  */
 
 import { Create, useForm } from '@refinedev/antd';
-import { Form, Input, Select } from 'antd';
+import { Form, Input } from 'antd';
 import type { IResourceComponentsProps } from '@refinedev/core';
 
 export const UserCreate: React.FC<IResourceComponentsProps> = () => {

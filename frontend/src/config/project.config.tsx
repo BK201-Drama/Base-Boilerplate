@@ -13,7 +13,6 @@
  * - menu: 菜单和资源配置
  */
 
-import React from 'react';
 import { DashboardOutlined, UserOutlined } from '@ant-design/icons';
 import type { RouteConfig, MenuResource } from './types';
 

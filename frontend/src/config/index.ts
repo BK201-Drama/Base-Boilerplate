@@ -22,3 +22,6 @@ export type { RouteConfig, MenuResource } from './types';
 // 组件注册表
 export { getComponent, componentRegistry } from './component.registry';
 
+// 主题配置
+export { lightTheme, darkTheme, compactTheme, getThemeConfig } from './theme.config';
+
