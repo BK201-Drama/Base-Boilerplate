@@ -1,44 +1,63 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
+import { BaseCrudService } from '../common/services/base-crud.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
+import { User } from '@prisma/client';
 
 @Injectable()
-export class UsersService {
-  constructor(
-    private prisma: PrismaService,
-    private i18n: I18nService,
-  ) {}
+export class UsersService extends BaseCrudService<
+  User,
+  CreateUserDto,
+  UpdateUserDto,
+  'users'
+> {
+  protected readonly modelName = 'users' as const;
+  protected readonly defaultPageSize = 10;
+  protected readonly defaultSelect = {
+    id: true,
+    username: true,
+    email: true,
+    nickname: true,
+    avatar: true,
+    status: true,
+    createdAt: true,
+    updatedAt: true,
+  } as const;
 
-  async create(createUserDto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        ...createUserDto,
-        password: hashedPassword,
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        nickname: true,
-        avatar: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-    return user;
+  constructor(prisma: PrismaService, i18n: I18nService) {
+    super(prisma, i18n);
   }
 
+  protected getModelDelegate() {
+    return this.prisma.user;
+  }
+
+  protected async beforeCreate(data: CreateUserDto): Promise<any> {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    return {
+      ...data,
+      password: hashedPassword,
+    };
+  }
+
+  protected async beforeUpdate(id: string, data: UpdateUserDto): Promise<any> {
+    const updateData: any = { ...data };
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+    return updateData;
+  }
+
+  /**
+   * 重写 findAll 方法以包含 userRoles 关系
+   */
   async findAll(page: number = 1, limit: number = 10) {
-    const skip = (page - 1) * limit;
-    const [data, total] = await Promise.all([
-      this.prisma.user.findMany({
-        skip,
-        take: limit,
+    return super.findAll(
+      { page, limit },
+      {
         select: {
           id: true,
           username: true,
@@ -60,22 +79,15 @@ export class UsersService {
           createdAt: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.user.count(),
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+      },
+    );
   }
 
+  /**
+   * 重写 findOne 方法以包含完整的角色和权限信息
+   */
   async findOne(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
+    return super.findOne(id, {
       select: {
         id: true,
         username: true,
@@ -111,43 +123,5 @@ export class UsersService {
         updatedAt: true,
       },
     });
-
-    if (!user) {
-      throw new NotFoundException(this.i18n.t('users.user_not_found'));
-    }
-
-    return user;
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    const updateData: any = { ...updateUserDto };
-
-    if (updateUserDto.password) {
-      updateData.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
-
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        nickname: true,
-        avatar: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    return user;
-  }
-
-  async remove(id: string) {
-    await this.prisma.user.delete({
-      where: { id },
-    });
-    return { message: this.i18n.t('users.user_deleted_success') };
   }
 }

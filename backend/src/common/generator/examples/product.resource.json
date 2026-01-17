@@ -1,0 +1,145 @@
+{
+  "name": "product",
+  "pluralName": "products",
+  "path": "products",
+  "prismaModel": "Product",
+  "description": "产品资源",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "validations": [
+        {
+          "type": "required",
+          "message": "validation.name_required"
+        },
+        {
+          "type": "min",
+          "value": 2,
+          "message": "validation.name_min_length"
+        }
+      ],
+      "description": "产品名称"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "required": false,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": false,
+      "includeInDetail": true,
+      "description": "产品描述"
+    },
+    {
+      "name": "price",
+      "type": "number",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "validations": [
+        {
+          "type": "required",
+          "message": "validation.price_required"
+        },
+        {
+          "type": "min",
+          "value": 0,
+          "message": "validation.price_min"
+        }
+      ],
+      "description": "产品价格"
+    },
+    {
+      "name": "stock",
+      "type": "number",
+      "required": true,
+      "defaultValue": 0,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "validations": [
+        {
+          "type": "required",
+          "message": "validation.stock_required"
+        },
+        {
+          "type": "min",
+          "value": 0,
+          "message": "validation.stock_min"
+        }
+      ],
+      "description": "库存数量"
+    },
+    {
+      "name": "status",
+      "type": "enum",
+      "required": true,
+      "defaultValue": "active",
+      "enumValues": ["active", "inactive", "archived"],
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "产品状态"
+    },
+    {
+      "name": "categoryId",
+      "type": "relation",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": false,
+      "includeInDetail": true,
+      "relation": {
+        "model": "Category",
+        "type": "many-to-one",
+        "includeInQuery": true,
+        "select": ["id", "name"]
+      },
+      "description": "分类ID"
+    }
+  ],
+  "operations": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "list": true,
+    "batchDelete": true
+  },
+  "permissions": {
+    "resource": "product",
+    "createRoles": ["admin", "manager"],
+    "updateRoles": ["admin", "manager"],
+    "deleteRoles": ["admin"],
+    "requireAuth": true
+  },
+  "defaultPageSize": 20,
+  "defaultSelect": {
+    "id": true,
+    "name": true,
+    "price": true,
+    "stock": true,
+    "status": true,
+    "createdAt": true,
+    "updatedAt": true
+  },
+  "hooks": {
+    "beforeCreate": true,
+    "afterCreate": false,
+    "beforeUpdate": true,
+    "afterUpdate": false,
+    "beforeDelete": true
+  },
+  "customMethods": []
+}
+
