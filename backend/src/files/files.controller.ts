@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { I18nService } from 'nestjs-i18n';
 import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -22,18 +22,26 @@ import * as path from 'path';
 @Controller('files')
 @UseGuards(JwtAuthGuard)
 export class FilesController {
+  private readonly uploadPath: string;
+  private readonly maxFileSize: number;
+
   constructor(
     private filesService: FilesService,
     private configService: ConfigService,
     private i18n: I18nService,
-  ) {}
+  ) {
+    this.uploadPath = this.configService.get<string>('UPLOAD_DEST') || './uploads';
+    this.maxFileSize = this.configService.get<number>('MAX_FILE_SIZE') || 10 * 1024 * 1024;
+  }
 
-  @Post('upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
+  private createFileInterceptorOptions() {
+    const uploadPath = this.uploadPath;
+    const maxFileSize = this.maxFileSize;
+    const i18n = this.i18n;
+    
+    return {
       storage: diskStorage({
         destination: (req, file, cb) => {
-          const uploadPath = this.configService.get<string>('UPLOAD_DEST') || './uploads';
           FileUtil.ensureDirectoryExists(uploadPath);
           cb(null, uploadPath);
         },
@@ -43,18 +51,21 @@ export class FilesController {
         },
       }),
       limits: {
-        fileSize: this.configService.get<number>('MAX_FILE_SIZE') || 10 * 1024 * 1024, // 10MB
+        fileSize: maxFileSize,
       },
       fileFilter: (req, file, cb) => {
         const allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
         if (FileUtil.isAllowedFileType(file.originalname, allowedTypes)) {
           cb(null, true);
         } else {
-          cb(new Error(this.i18n.t('common.file_type_not_supported')), false);
+          cb(new Error(i18n.t('common.file_type_not_supported')), false);
         }
       },
-    }),
-  )
+    };
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     return {
       filename: file.filename,
@@ -68,8 +79,7 @@ export class FilesController {
 
   @Get('download/:filename')
   async downloadFile(@Param('filename') filename: string, @Res() res: Response) {
-    const uploadPath = this.configService.get<string>('UPLOAD_DEST') || './uploads';
-    const filePath = path.join(uploadPath, filename);
+    const filePath = path.join(this.uploadPath, filename);
     return res.download(filePath);
   }
 
@@ -105,21 +115,7 @@ export class FilesController {
   }
 
   @Post('import/excel')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = this.configService.get<string>('UPLOAD_DEST') || './uploads';
-          FileUtil.ensureDirectoryExists(uploadPath);
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          const uniqueName = FileUtil.generateUniqueFileName(file.originalname);
-          cb(null, uniqueName);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file'))
   async importExcel(@UploadedFile() file: Express.Multer.File) {
     const data = await this.filesService.importExcel(file.path);
     return {

@@ -91,6 +91,6 @@ export class UserController {
   @Roles('admin')
   @Permissions('user:delete')
   batchDelete(@Body() body: { ids: string[] }) {
-    return this.userService.deleteMany(body.ids);
+    return this.userService.removeMany(body.ids);
   }
 }

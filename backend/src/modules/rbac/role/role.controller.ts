@@ -91,6 +91,6 @@ export class RoleController {
   @Roles('admin')
   @Permissions('role:delete')
   batchDelete(@Body() body: { ids: string[] }) {
-    return this.roleService.deleteMany(body.ids);
+    return this.roleService.removeMany(body.ids);
   }
 }

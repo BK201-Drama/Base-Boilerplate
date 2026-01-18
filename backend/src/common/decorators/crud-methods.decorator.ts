@@ -3,13 +3,11 @@ import {
   Post,
   Patch,
   Delete,
-  Body,
-  Param,
-  Query,
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
+import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RolesGuard } from '../guards/roles.guard';
 import { PermissionsGuard } from '../guards/permissions.guard';
 import { Roles } from './roles.decorator';
@@ -27,106 +25,168 @@ export function CrudMethods(): ClassDecorator {
     const { resource, createRoles, updateRoles, deleteRoles } = config;
 
     // 创建方法
-    const createMethod = function (this: any, @Body() dto: any) {
+    const createMethod = function (this: any, dto: any) {
       return this.service.create(dto);
     };
     createMethod.toString = () => 'create';
-    Post()(target.prototype, 'create', {
+    
+    // 设置 Body 参数元数据
+    const bodyMetadata = {
+      [`${0}:body`]: {
+        index: 0,
+        data: undefined,
+        pipes: [],
+      },
+    };
+    Reflect.defineMetadata(ROUTE_ARGS_METADATA, bodyMetadata, target.prototype, 'create');
+    
+    const createDescriptor: PropertyDescriptor = {
       value: createMethod,
       writable: true,
       configurable: true,
-    });
+    };
+    Post()(target.prototype, 'create', createDescriptor);
     UseGuards(RolesGuard, PermissionsGuard)(
       target.prototype,
       'create',
-      createMethod,
+      createDescriptor,
     );
     if (createRoles.length > 0) {
-      Roles(...createRoles)(target.prototype, 'create', createMethod);
+      Roles(...createRoles)(target.prototype, 'create', createDescriptor);
     }
-    Permissions(`${resource}:create`)(target.prototype, 'create', createMethod);
+    Permissions(`${resource}:create`)(target.prototype, 'create', createDescriptor);
 
     // 查询列表方法
-    const findAllMethod = function (
-      this: any,
-      @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
-      @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
-    ) {
+    const findAllMethod = function (this: any, page?: number, limit?: number) {
       return this.service.findAll({ page, limit });
     };
     findAllMethod.toString = () => 'findAll';
-    Get()(target.prototype, 'findAll', {
+    
+    // 设置 Query 参数元数据
+    const queryMetadata = {
+      [`${0}:query`]: {
+        index: 0,
+        data: 'page',
+        pipes: [new DefaultValuePipe(1), new ParseIntPipe()],
+      },
+      [`${1}:query`]: {
+        index: 1,
+        data: 'limit',
+        pipes: [new DefaultValuePipe(10), new ParseIntPipe()],
+      },
+    };
+    Reflect.defineMetadata(ROUTE_ARGS_METADATA, queryMetadata, target.prototype, 'findAll');
+    
+    const findAllDescriptor: PropertyDescriptor = {
       value: findAllMethod,
       writable: true,
       configurable: true,
-    });
+    };
+    Get()(target.prototype, 'findAll', findAllDescriptor);
     UseGuards(RolesGuard, PermissionsGuard)(
       target.prototype,
       'findAll',
-      findAllMethod,
+      findAllDescriptor,
     );
-    Permissions(`${resource}:read`)(target.prototype, 'findAll', findAllMethod);
+    Permissions(`${resource}:read`)(target.prototype, 'findAll', findAllDescriptor);
 
     // 查询单条方法
-    const findOneMethod = function (this: any, @Param('id') id: string) {
+    const findOneMethod = function (this: any, id: string) {
       return this.service.findOne(id);
     };
     findOneMethod.toString = () => 'findOne';
-    Get(':id')(target.prototype, 'findOne', {
+    
+    // 设置 Param 参数元数据
+    const paramMetadata = {
+      [`${0}:param`]: {
+        index: 0,
+        data: 'id',
+        pipes: [],
+      },
+    };
+    Reflect.defineMetadata(ROUTE_ARGS_METADATA, paramMetadata, target.prototype, 'findOne');
+    
+    const findOneDescriptor: PropertyDescriptor = {
       value: findOneMethod,
       writable: true,
       configurable: true,
-    });
+    };
+    Get(':id')(target.prototype, 'findOne', findOneDescriptor);
     UseGuards(RolesGuard, PermissionsGuard)(
       target.prototype,
       'findOne',
-      findOneMethod,
+      findOneDescriptor,
     );
-    Permissions(`${resource}:read`)(target.prototype, 'findOne', findOneMethod);
+    Permissions(`${resource}:read`)(target.prototype, 'findOne', findOneDescriptor);
 
     // 更新方法
-    const updateMethod = function (
-      this: any,
-      @Param('id') id: string,
-      @Body() dto: any,
-    ) {
+    const updateMethod = function (this: any, id: string, dto: any) {
       return this.service.update(id, dto);
     };
     updateMethod.toString = () => 'update';
-    Patch(':id')(target.prototype, 'update', {
+    
+    // 设置 Param 和 Body 参数元数据
+    const updateMetadata = {
+      [`${0}:param`]: {
+        index: 0,
+        data: 'id',
+        pipes: [],
+      },
+      [`${1}:body`]: {
+        index: 1,
+        data: undefined,
+        pipes: [],
+      },
+    };
+    Reflect.defineMetadata(ROUTE_ARGS_METADATA, updateMetadata, target.prototype, 'update');
+    
+    const updateDescriptor: PropertyDescriptor = {
       value: updateMethod,
       writable: true,
       configurable: true,
-    });
+    };
+    Patch(':id')(target.prototype, 'update', updateDescriptor);
     UseGuards(RolesGuard, PermissionsGuard)(
       target.prototype,
       'update',
-      updateMethod,
+      updateDescriptor,
     );
     if (updateRoles.length > 0) {
-      Roles(...updateRoles)(target.prototype, 'update', updateMethod);
+      Roles(...updateRoles)(target.prototype, 'update', updateDescriptor);
     }
-    Permissions(`${resource}:update`)(target.prototype, 'update', updateMethod);
+    Permissions(`${resource}:update`)(target.prototype, 'update', updateDescriptor);
 
     // 删除方法
-    const removeMethod = function (this: any, @Param('id') id: string) {
+    const removeMethod = function (this: any, id: string) {
       return this.service.remove(id);
     };
     removeMethod.toString = () => 'remove';
-    Delete(':id')(target.prototype, 'remove', {
+    
+    // 设置 Param 参数元数据
+    const removeMetadata = {
+      [`${0}:param`]: {
+        index: 0,
+        data: 'id',
+        pipes: [],
+      },
+    };
+    Reflect.defineMetadata(ROUTE_ARGS_METADATA, removeMetadata, target.prototype, 'remove');
+    
+    const removeDescriptor: PropertyDescriptor = {
       value: removeMethod,
       writable: true,
       configurable: true,
-    });
+    };
+    Delete(':id')(target.prototype, 'remove', removeDescriptor);
     UseGuards(RolesGuard, PermissionsGuard)(
       target.prototype,
       'remove',
-      removeMethod,
+      removeDescriptor,
     );
     if (deleteRoles.length > 0) {
-      Roles(...deleteRoles)(target.prototype, 'remove', removeMethod);
+      Roles(...deleteRoles)(target.prototype, 'remove', removeDescriptor);
     }
-    Permissions(`${resource}:delete`)(target.prototype, 'remove', removeMethod);
+    Permissions(`${resource}:delete`)(target.prototype, 'remove', removeDescriptor);
   };
 }
 

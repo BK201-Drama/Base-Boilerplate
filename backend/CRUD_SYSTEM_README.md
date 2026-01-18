@@ -19,14 +19,10 @@ backend/src/common/
 │   └── base-crud.controller.ts       # 基础 CRUD 控制器类（可选）
 ├── types/
 │   └── crud.types.ts                 # CRUD 类型定义
-└── templates/                        # 代码生成模板
-    ├── service.template.ts           # Service 模板
-    ├── controller.template.ts         # Controller 模板
-    ├── dto-create.template.ts        # Create DTO 模板
-    ├── dto-update.template.ts        # Update DTO 模板
-    ├── module.template.ts            # Module 模板
+└── templates/                        # 代码生成文档
     ├── CRUD_GENERATION_GUIDE.md      # 详细生成指南
-    └── QUICK_REFERENCE.md            # 快速参考
+    ├── QUICK_REFERENCE.md            # 快速参考
+    └── SIMPLE_CONTROLLER_GUIDE.md    # 简化 Controller 指南
 
 .cursorrules                          # Cursor AI 规则文件
 ```
@@ -51,7 +47,8 @@ backend/src/common/
 
 2. **AI 会自动参考以下内容生成代码**：
    - `.cursorrules` - 代码生成规则
-   - `backend/src/common/templates/` - 代码模板
+   - `backend/src/common/generator/` - 代码生成器
+   - `backend/src/common/templates/` - 生成指南文档
    - `backend/src/users/` - 参考示例
 
 3. **生成的文件包括**：
@@ -320,7 +317,8 @@ A: 在 Service 中添加自定义方法，或重写基类方法。
 ## 技术支持
 
 如有问题，请参考：
-- 示例代码: `backend/src/users/`
-- 代码模板: `backend/src/common/templates/`
+- 示例代码: `backend/src/modules/rbac/`
+- 代码生成器: `backend/src/common/generator/`
+- 生成指南: `backend/src/common/templates/`
 - Cursor Rules: `.cursorrules`
 

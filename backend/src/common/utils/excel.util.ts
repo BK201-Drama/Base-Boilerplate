@@ -55,12 +55,17 @@ export class ExcelUtil {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
     const worksheet = workbook.getWorksheet(1);
-    const data = [];
+    
+    if (!worksheet) {
+      throw new Error('Worksheet not found');
+    }
+    
+    const data: Record<string, any>[] = [];
 
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // 跳过表头
 
-      const rowData = {};
+      const rowData: Record<string, any> = {};
       row.eachCell((cell, colNumber) => {
         const headerCell = worksheet.getRow(1).getCell(colNumber);
         if (headerCell.value) {

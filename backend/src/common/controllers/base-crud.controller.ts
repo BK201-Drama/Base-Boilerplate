@@ -17,37 +17,7 @@ import { PermissionsGuard } from '../guards/permissions.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { Permissions } from '../decorators/permissions.decorator';
 import { BaseCrudService } from '../services/base-crud.service';
-import { PaginationParams } from '../types/crud.types';
-
-/**
- * CRUD 控制器配置
- */
-export interface CrudControllerConfig {
-  /**
-   * 资源名称（用于权限检查，如 'user'）
-   */
-  resource: string;
-  /**
-   * 是否需要认证
-   */
-  requireAuth?: boolean;
-  /**
-   * 创建操作需要的角色
-   */
-  createRoles?: string[];
-  /**
-   * 更新操作需要的角色
-   */
-  updateRoles?: string[];
-  /**
-   * 删除操作需要的角色
-   */
-  deleteRoles?: string[];
-  /**
-   * 是否启用批量删除
-   */
-  enableBatchDelete?: boolean;
-}
+import { PaginationParams, CrudControllerConfig } from '../types/crud.types';
 
 /**
  * 基础 CRUD 控制器类

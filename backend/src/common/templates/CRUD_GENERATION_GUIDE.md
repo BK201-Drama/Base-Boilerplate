@@ -463,8 +463,8 @@ async findByDateRange(startDate: Date, endDate: Date) {
 4. Module 类
 5. 国际化消息
 
-参考示例：backend/src/users/
-参考模板：backend/src/common/templates/
+参考示例：backend/src/modules/rbac/
+参考文档：backend/src/common/templates/
 参考规则：.cursorrules
 ```
 
@@ -485,7 +485,7 @@ A: 在 `findAll` 或 `findMany` 的 `where` 条件中添加权限过滤。
 ## 参考资源
 
 - 基座文档: `backend/src/common/README.md`
-- 示例实现: `backend/src/users/`
-- 代码模板: `backend/src/common/templates/`
+- 示例实现: `backend/src/modules/rbac/`
+- 代码生成器: `backend/src/common/generator/`
 - Cursor Rules: `.cursorrules`
 

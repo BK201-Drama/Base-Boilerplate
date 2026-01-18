@@ -274,6 +274,5 @@ backend/src/users/
 ## 参考资源
 
 - **工厂函数**: `backend/src/common/utils/crud-controller.factory.ts`
-- **使用示例**: `backend/src/common/examples/one-line-controller.example.ts`
-- **模板文件**: `backend/src/common/templates/controller-simple.template.ts`
+- **使用示例**: 参考 `backend/src/modules/rbac/` 下的实际实现
 

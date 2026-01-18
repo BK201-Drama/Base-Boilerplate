@@ -91,6 +91,6 @@ export class PermissionController {
   @Roles('admin')
   @Permissions('permission:delete')
   batchDelete(@Body() body: { ids: string[] }) {
-    return this.permissionService.deleteMany(body.ids);
+    return this.permissionService.removeMany(body.ids);
   }
 }

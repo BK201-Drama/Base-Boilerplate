@@ -161,10 +161,13 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
 
     const endpoints: string[] = [];
 
+    // 如果类级别已经应用了 JwtAuthGuard，方法级别就不需要重复
+    const methodGuards = requireAuth ? 'RolesGuard, PermissionsGuard' : 'JwtAuthGuard, RolesGuard, PermissionsGuard';
+
     if (resource.operations?.create !== false) {
       endpoints.push(`
   @Post()
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${createRoles.length > 0 ? `@Roles(${createRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:create')
   create(@Body() createDto: ${createDtoName}) {
@@ -175,7 +178,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
     if (resource.operations?.list !== false) {
       endpoints.push(`
   @Get()
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   @Permissions('${resourceName}:read')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -188,7 +191,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
     if (resource.operations?.read !== false) {
       endpoints.push(`
   @Get(':id')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   @Permissions('${resourceName}:read')
   findOne(@Param('id') id: string) {
     return this.${serviceVarName}.findOne(id);
@@ -198,7 +201,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
     if (resource.operations?.update !== false) {
       endpoints.push(`
   @Patch(':id')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
   update(@Param('id') id: string, @Body() updateDto: ${updateDtoName}) {
@@ -209,7 +212,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
     if (resource.operations?.delete !== false) {
       endpoints.push(`
   @Delete(':id')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${deleteRoles.length > 0 ? `@Roles(${deleteRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:delete')
   remove(@Param('id') id: string) {
@@ -221,11 +224,11 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
     if (resource.operations?.batchDelete === true) {
       endpoints.push(`
   @Delete('batch')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${deleteRoles.length > 0 ? `@Roles(${deleteRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:delete')
   batchDelete(@Body() body: { ids: string[] }) {
-    return this.${serviceVarName}.deleteMany(body.ids);
+    return this.${serviceVarName}.removeMany(body.ids);
   }`);
     }
 
@@ -250,6 +253,9 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
     const serviceVarName = this.toCamelCase(serviceName);
     const endpoints: string[] = [];
 
+    // 如果类级别已经应用了 JwtAuthGuard，方法级别就不需要重复
+    const methodGuards = defaultRequireAuth ? 'RolesGuard, PermissionsGuard' : 'JwtAuthGuard, RolesGuard, PermissionsGuard';
+
     resource.relationBindings.forEach((binding) => {
       // 只生成配置了独立端点的绑定
       if (binding.generateStandaloneEndpoints !== true) {
@@ -261,7 +267,6 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
       const dtoFieldName = binding.dtoFieldName || this.generateDtoFieldName(binding, relationType);
       const bindMethodName = `bind${this.toPascalCase(fieldName)}`;
       const unbindMethodName = `unbind${this.toPascalCase(fieldName)}`;
-      const requireAuth = defaultRequireAuth;
 
       if (relationType === 'many-to-many') {
         // 多对多关系：绑定和解绑端点
@@ -272,7 +277,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
    * POST /${resource.path || resource.pluralName || `${resource.name}s`}/:id/bind-${fieldName}
    */
   @Post(':id/bind-${fieldName}')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
   ${bindMethodName}(@Param('id') id: string, @Body() body: { ${dtoFieldName}: string[] }) {
@@ -286,7 +291,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
    * DELETE /${resource.path || resource.pluralName || `${resource.name}s`}/:id/unbind-${fieldName}/:relatedId
    */
   @Delete(':id/unbind-${fieldName}/:relatedId')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
   ${unbindMethodName}(@Param('id') id: string, @Param('relatedId') relatedId: string) {
@@ -307,7 +312,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
    * POST /${resource.path || resource.pluralName || `${resource.name}s`}/:id/set-${fieldName}
    */
   @Post(':id/set-${fieldName}')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
   ${bindMethodName}(@Param('id') id: string, @Body() body: { ${dtoFieldName}: string | null }) {
@@ -321,7 +326,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
    * DELETE /${resource.path || resource.pluralName || `${resource.name}s`}/:id/unbind-${fieldName}
    */
   @Delete(':id/unbind-${fieldName}')
-  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
   ${unbindMethodName}(@Param('id') id: string) {
@@ -429,8 +434,12 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
       const paramDecoratorsStr = paramDecorators.length > 0 ? '\n    ' + paramDecorators.join(',\n    ') : '';
 
       // 生成权限和角色装饰器
+      // 如果类级别已经应用了 JwtAuthGuard，方法级别就不需要重复
       const guards: string[] = [];
-      if (requireAuth) guards.push('JwtAuthGuard');
+      // 只有在类级别没有应用 JwtAuthGuard，或者当前端点需要认证但类级别不需要时，才添加 JwtAuthGuard
+      if (!defaultRequireAuth && requireAuth) {
+        guards.push('JwtAuthGuard');
+      }
       guards.push('RolesGuard', 'PermissionsGuard');
       
       const rolesDecorator = endpoint.roles && endpoint.roles.length > 0

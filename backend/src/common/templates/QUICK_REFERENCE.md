@@ -10,13 +10,10 @@ backend/src/common/
 │   └── base-crud.controller.ts     # 基础 CRUD 控制器类（可选使用）
 ├── types/
 │   └── crud.types.ts              # CRUD 类型定义
-└── templates/                      # 代码生成模板
-    ├── service.template.ts
-    ├── controller.template.ts
-    ├── dto-create.template.ts
-    ├── dto-update.template.ts
-    ├── module.template.ts
-    └── CRUD_GENERATION_GUIDE.md
+└── templates/                      # 代码生成文档
+    ├── CRUD_GENERATION_GUIDE.md    # CRUD 生成指南
+    ├── QUICK_REFERENCE.md          # 快速参考
+    └── SIMPLE_CONTROLLER_GUIDE.md  # 简化 Controller 指南
 ```
 
 ## BaseCrudService 可用方法

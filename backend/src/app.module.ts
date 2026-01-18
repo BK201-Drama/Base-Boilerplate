@@ -24,7 +24,7 @@ import { UserModule } from './modules/rbac/user/user.module';
       fallbackLanguage: 'zh',
       loader: I18nJsonLoader,
       loaderOptions: {
-        path: path.join(__dirname, '../i18n/'),
+        path: path.join(process.cwd(), 'dist/i18n/'),
         watch: process.env.NODE_ENV === 'development',
       },
       resolvers: [AcceptLanguageResolver],

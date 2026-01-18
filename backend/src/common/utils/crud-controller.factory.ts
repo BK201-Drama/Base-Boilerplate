@@ -17,36 +17,7 @@ import { PermissionsGuard } from '../guards/permissions.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { Permissions } from '../decorators/permissions.decorator';
 import { BaseCrudService } from '../services/base-crud.service';
-
-/**
- * CRUD Controller 配置
- */
-export interface CrudControllerConfig {
-  /**
-   * 资源名称（用于权限检查，如 'user'）
-   */
-  resource: string;
-  /**
-   * 路由路径（如 'users'），如果不提供则使用 resource 的复数形式
-   */
-  path?: string;
-  /**
-   * 是否需要认证（默认：true）
-   */
-  requireAuth?: boolean;
-  /**
-   * 创建操作需要的角色
-   */
-  createRoles?: string[];
-  /**
-   * 更新操作需要的角色
-   */
-  updateRoles?: string[];
-  /**
-   * 删除操作需要的角色
-   */
-  deleteRoles?: string[];
-}
+import { CrudControllerConfig } from '../types/crud.types';
 
 /**
  * 创建 CRUD Controller 的工厂函数
@@ -77,10 +48,11 @@ export function createCrudController(config: CrudControllerConfig) {
     TModel extends { id: string },
     TCreateDto,
     TUpdateDto,
-  >(ServiceClass: new (...args: any[]) => BaseCrudService<TModel, TCreateDto, TUpdateDto, any>) {
+    TService extends BaseCrudService<TModel, TCreateDto, TUpdateDto, any> = BaseCrudService<TModel, TCreateDto, TUpdateDto, any>,
+  >(ServiceClass: new (...args: any[]) => TService) {
     @Controller(routePath)
     class CrudController {
-      constructor(public readonly service: ServiceClass) {}
+      constructor(public readonly service: TService) {}
 
       @Post()
       @UseGuards(
