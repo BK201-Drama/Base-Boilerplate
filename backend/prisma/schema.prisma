@@ -7,9 +7,20 @@ datasource db {
 }
 
 enum UserStatusEnum {
-    active
+  active
   inactive
   banned
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  permissionId Int
+  roleId       Int
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([permissionId, roleId])
+  @@map("role_permissions")
 }
 
 model UserRole {
@@ -23,89 +34,86 @@ model UserRole {
   @@map("user_roles")
 }
 
-model RolePermission {
-  id           Int        @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  @@unique([roleId, permissionId])
-  @@map("role_permissions")
-}
-
-model OperationLog {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  method      String   // HTTP 方法
-  path        String   // 请求路径
-  params      String?  @db.Text // 请求参数（JSON）
-  response    String?  @db.Text // 响应数据（JSON）
-  statusCode  Int      // HTTP 状态码
-  ip          String?
-  userAgent   String?
-  duration    Int?     // 请求耗时（毫秒）
-  createdAt   DateTime @default(now())
-
-  @@map("operation_logs")
-  @@index([userId])
-  @@index([createdAt])
-}
-
+// 权限资源（RBAC系统）
 model Permission {
-  id        Int      @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   // 权限名称
-  name String @unique
+  name            String           @unique
   // 权限代码
-  code String @unique
+  code            String           @unique
   // 资源名称
-  resource String
+  resource        String
   // 操作类型
-  action String
+  action          String
   // 权限描述
-  description String? @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  description     String?          @db.Text
+  roles           Role[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   rolePermissions RolePermission[]
 
   @@map("permissions")
 }
 
+// 角色资源（RBAC系统）
 model Role {
-  id        Int      @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   // 角色名称
-  name String @unique
+  name            String           @unique
   // 角色代码
-  code String @unique
+  code            String           @unique
   // 角色描述
-  description String? @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userRoles UserRole[]
+  description     String?          @db.Text
+  permissions     Permission[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   rolePermissions RolePermission[]
+  userRoles       UserRole[]
+  user            User?            @relation(fields: [userId], references: [id])
+  userId          Int?
 
   @@map("roles")
 }
 
+// 用户资源（RBAC系统）
 model User {
-  id        Int      @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   // 用户名
-  username String @unique
+  username      String         @unique
   // 邮箱
-  email String @unique
+  email         String         @unique
   // 密码
-  password String
+  password      String
   // 昵称
-  nickname String?
+  nickname      String?
   // 头像URL
-  avatar String?
+  avatar        String?
   // 用户状态
-  status UserStatusEnum @default(active)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userRoles UserRole[]
-  logs      OperationLog[]
+  status        UserStatusEnum @default(active)
+  roles         Role[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  userRoles     UserRole[]
+  operationLogs OperationLog[]
 
   @@map("users")
+}
+
+model OperationLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  method     String // HTTP 方法
+  path       String // 请求路径
+  params     String?  @db.Text // 请求参数（JSON）
+  response   String?  @db.Text // 响应数据（JSON）
+  statusCode Int // HTTP 状态码
+  ip         String?
+  userAgent  String?
+  duration   Int? // 请求耗时（毫秒）
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("operation_logs")
 }
