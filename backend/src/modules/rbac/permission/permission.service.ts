@@ -35,7 +35,7 @@ export class PermissionService extends BaseCrudService<
     return data;
   }
 
-  protected async beforeUpdate(id: string, data: UpdatePermissionDto): Promise<any> {
+  protected async beforeUpdate(id: number, data: UpdatePermissionDto): Promise<any> {
     // TODO: 实现更新前处理逻辑
     return data;
   }

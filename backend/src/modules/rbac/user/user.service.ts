@@ -58,7 +58,7 @@ export class UserService extends BaseCrudService<
   /**
    * 根据ID查询（包含关联数据，使用 SQL JOIN）
    */
-  async findOne(id: string, options?: any) {
+  async findOne(id: number, options?: any) {
     return super.findOne(id, {
       ...options,
       include: {
@@ -81,14 +81,14 @@ export class UserService extends BaseCrudService<
     return data;
   }
 
-  protected async beforeUpdate(id: string, data: UpdateUserDto): Promise<any> {
+  protected async beforeUpdate(id: number, data: UpdateUserDto): Promise<any> {
     // TODO: 实现更新前处理逻辑
     return data;
   }
   /**
    * 更新记录（包含关系绑定处理）
    */
-  async update(id: string, updateDto: UpdateUserDto) {
+  async update(id: number, updateDto: UpdateUserDto) {
     // 分离关系绑定字段和普通字段
     const { roleIds, ...updateData } = updateDto as any;
 
@@ -108,7 +108,7 @@ export class UserService extends BaseCrudService<
    * @param id 当前记录ID
    * @param roleIds 关联记录ID数组
    */
-  private async handleUserRolesBinding(id: string, roleIds: string[]) {
+  private async handleUserRolesBinding(id: number, roleIds: number[]) {
     // 获取当前所有关联记录
     const currentBindings = await this.prisma.userRole.findMany({
       where: {

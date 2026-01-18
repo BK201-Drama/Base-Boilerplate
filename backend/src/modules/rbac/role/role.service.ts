@@ -57,7 +57,7 @@ export class RoleService extends BaseCrudService<
   /**
    * 根据ID查询（包含关联数据，使用 SQL JOIN）
    */
-  async findOne(id: string, options?: any) {
+  async findOne(id: number, options?: any) {
     return super.findOne(id, {
       ...options,
       include: {
@@ -82,14 +82,14 @@ export class RoleService extends BaseCrudService<
     return data;
   }
 
-  protected async beforeUpdate(id: string, data: UpdateRoleDto): Promise<any> {
+  protected async beforeUpdate(id: number, data: UpdateRoleDto): Promise<any> {
     // TODO: 实现更新前处理逻辑
     return data;
   }
   /**
    * 更新记录（包含关系绑定处理）
    */
-  async update(id: string, updateDto: UpdateRoleDto) {
+  async update(id: number, updateDto: UpdateRoleDto) {
     // 分离关系绑定字段和普通字段
     const { permissionIds, ...updateData } = updateDto as any;
 
@@ -109,7 +109,7 @@ export class RoleService extends BaseCrudService<
    * @param id 当前记录ID
    * @param permissionIds 关联记录ID数组
    */
-  private async handleRolePermissionsBinding(id: string, permissionIds: string[]) {
+  private async handleRolePermissionsBinding(id: number, permissionIds: number[]) {
     // 获取当前所有关联记录
     const currentBindings = await this.prisma.rolePermission.findMany({
       where: {
