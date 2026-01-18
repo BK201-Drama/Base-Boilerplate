@@ -3,7 +3,7 @@
   "pluralName": "orders",
   "path": "orders",
   "prismaModel": "Order",
-  "description": "订单资源（包含用户和产品信息）",
+  "description": "订单资源（包含产品绑定）",
   "fields": [
     {
       "name": "orderNumber",
@@ -52,22 +52,28 @@
   "defaultPageSize": 20,
   "joins": [
     {
-      "model": "User",
-      "field": "user",
-      "includeInList": true,
-      "includeInDetail": true,
-      "select": ["id", "username", "email", "nickname"]
-    },
-    {
       "model": "Product",
-      "field": "products",
+      "field": "orderProducts",
       "includeInList": true,
       "includeInDetail": true,
       "select": ["id", "name", "price"]
     }
   ],
+  "relationBindings": [
+    {
+      "field": "orderProducts",
+      "relatedModel": "Product",
+      "junctionModel": "OrderProduct",
+      "currentModelForeignKey": "orderId",
+      "relatedModelForeignKey": "productId",
+      "dtoFieldName": "productIds",
+      "handleInUpdate": true,
+      "generateStandaloneEndpoints": false,
+      "description": "订单产品绑定"
+    }
+  ],
   "hooks": {
     "beforeCreate": true,
-    "afterCreate": true
+    "beforeUpdate": true
   }
 }

@@ -299,12 +299,85 @@ export interface ResourceDefinition {
    * 例如：A join B join C，配置后会在查询时自动包含B和C的数据
    */
   joins?: JoinConfig[];
+  /**
+   * 关系绑定配置
+   * 用于配置关系绑定操作（支持一对一、一对多、多对多）
+   * 这些绑定操作会在Update操作中自动处理
+   */
+  relationBindings?: RelationBindingConfig[];
 }
 
 /**
  * 关联查询策略
  */
 export type JoinStrategy = 'sql' | 'memory';
+
+/**
+ * 关系类型
+ */
+export type RelationType = 'one-to-one' | 'one-to-many' | 'many-to-many';
+
+/**
+ * 关系绑定配置
+ * 用于定义各种关系类型的绑定操作，根据数据库的实际关系类型自动处理
+ */
+export interface RelationBindingConfig {
+  /**
+   * 关联字段名称（在当前模型中的字段名，如 userRoles, rolePermissions, categoryId）
+   * 必须与 Prisma Schema 中定义的关联字段名称一致
+   */
+  field: string;
+  /**
+   * 关联的模型名称（Prisma模型名，如 Role, Permission, Category）
+   */
+  relatedModel: string;
+  /**
+   * 关系类型（默认根据是否有junctionModel自动判断）
+   * - 'one-to-one': 一对一关系，使用外键字段直接更新
+   * - 'one-to-many': 一对多关系，使用外键字段直接更新
+   * - 'many-to-many': 多对多关系，需要通过中间表处理
+   */
+  relationType?: RelationType;
+  /**
+   * 中间表模型名称（仅多对多关系需要，Prisma模型名，如 UserRole, RolePermission）
+   * 如果提供了此字段，relationType 会自动设置为 'many-to-many'
+   */
+  junctionModel?: string;
+  /**
+   * 当前模型在中间表中的外键字段名（仅多对多关系需要，如 userId）
+   */
+  currentModelForeignKey?: string;
+  /**
+   * 关联模型在中间表中的外键字段名（仅多对多关系需要，如 roleId, permissionId）
+   */
+  relatedModelForeignKey?: string;
+  /**
+   * 外键字段名（一对一和一对多关系使用，在当前模型中的外键字段名，如 categoryId, userId）
+   * 如果不提供，将自动生成：field + 'Id'（如果field是复数，则使用relatedModel的小写形式 + 'Id'）
+   */
+  foreignKeyField?: string;
+  /**
+   * Update DTO中的字段名（如 roleIds, permissionIds, categoryId）
+   * 如果不提供，将根据关系类型自动生成：
+   * - 一对一/一对多：foreignKeyField 或自动生成
+   * - 多对多：relatedModel的小写形式 + 'Ids'
+   */
+  dtoFieldName?: string;
+  /**
+   * 是否在Update操作中自动处理绑定（默认：true）
+   * 如果为true，Update DTO中会自动包含该字段，并在update方法中处理绑定逻辑
+   */
+  handleInUpdate?: boolean;
+  /**
+   * 是否生成独立的绑定端点（默认：false）
+   * 如果为true，会生成独立的POST /:id/bind-{field} 和 DELETE /:id/unbind-{field} 端点
+   */
+  generateStandaloneEndpoints?: boolean;
+  /**
+   * 绑定操作的描述
+   */
+  description?: string;
+}
 
 /**
  * 多表关联配置

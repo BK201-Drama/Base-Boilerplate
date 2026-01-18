@@ -3,7 +3,7 @@
  * 根据 ResourceDefinition 生成 Controller 类
  */
 
-import { ResourceDefinition } from '../types/resource.types';
+import { ResourceDefinition, RelationBindingConfig, RelationType } from '../types/resource.types';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -26,6 +26,9 @@ export class ControllerGenerator {
 
     // 生成操作端点
     const endpoints = this.generateEndpoints(resource, resourceName, requireAuth, createRoles, updateRoles, deleteRoles);
+    
+    // 生成多对多关系绑定端点（如果配置了独立端点）
+    const bindingEndpoints = this.generateManyToManyBindingEndpoints(resource, resourceName, requireAuth, updateRoles);
     
     // 生成自定义端点
     const customEndpoints = this.generateCustomEndpoints(resource, resourceName, requireAuth);
@@ -65,7 +68,7 @@ import { ${updateDtoName} } from './dto/update-${resource.name}.dto';
 ${requireAuth ? '@UseGuards(JwtAuthGuard)' : ''}
 export class ${className}Controller {
   constructor(private readonly ${serviceVarName}: ${serviceName}) {}
-${endpoints}${customEndpoints}
+${endpoints}${bindingEndpoints}${customEndpoints}
 }
 `;
   }
@@ -82,6 +85,12 @@ ${endpoints}${customEndpoints}
     
     if (operations?.create !== false) {
       imports.add('Post');
+      imports.add('Body');
+    }
+    // 检查是否有独立的关系绑定端点需要Post和Delete
+    if (resource.relationBindings?.some(b => b.generateStandaloneEndpoints === true)) {
+      imports.add('Post');
+      imports.add('Delete');
       imports.add('Body');
     }
     if (operations?.list !== false || operations?.read !== false) {
@@ -220,6 +229,145 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
     }
 
     return endpoints.join('\n');
+  }
+
+  /**
+   * 生成关系绑定端点（支持所有关系类型）
+   */
+  private generateManyToManyBindingEndpoints(
+    resource: ResourceDefinition,
+    resourceName: string,
+    defaultRequireAuth: boolean,
+    updateRoles: string[],
+  ): string {
+    if (!resource.relationBindings || resource.relationBindings.length === 0) {
+      return '';
+    }
+
+    const className = this.toPascalCase(resource.name);
+    const serviceName = `${className}Service`;
+    const serviceVarName = this.toCamelCase(serviceName);
+    const endpoints: string[] = [];
+
+    resource.relationBindings.forEach((binding) => {
+      // 只生成配置了独立端点的绑定
+      if (binding.generateStandaloneEndpoints !== true) {
+        return;
+      }
+
+      const relationType = this.determineRelationType(binding);
+      const fieldName = binding.field;
+      const dtoFieldName = binding.dtoFieldName || this.generateDtoFieldName(binding, relationType);
+      const bindMethodName = `bind${this.toPascalCase(fieldName)}`;
+      const unbindMethodName = `unbind${this.toPascalCase(fieldName)}`;
+      const requireAuth = defaultRequireAuth;
+
+      if (relationType === 'many-to-many') {
+        // 多对多关系：绑定和解绑端点
+        // 绑定端点：POST /:id/bind-{field}
+        endpoints.push(`
+  /**
+   * 绑定${binding.description || fieldName}
+   * POST /${resource.path || resource.pluralName || `${resource.name}s`}/:id/bind-${fieldName}
+   */
+  @Post(':id/bind-${fieldName}')
+  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
+  @Permissions('${resourceName}:update')
+  ${bindMethodName}(@Param('id') id: string, @Body() body: { ${dtoFieldName}: string[] }) {
+    return this.${serviceVarName}.update(id, { ${dtoFieldName}: body.${dtoFieldName} } as any);
+  }`);
+
+        // 解绑端点：DELETE /:id/unbind-{field}/:relatedId
+        endpoints.push(`
+  /**
+   * 解绑${binding.description || fieldName}
+   * DELETE /${resource.path || resource.pluralName || `${resource.name}s`}/:id/unbind-${fieldName}/:relatedId
+   */
+  @Delete(':id/unbind-${fieldName}/:relatedId')
+  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
+  @Permissions('${resourceName}:update')
+  ${unbindMethodName}(@Param('id') id: string, @Param('relatedId') relatedId: string) {
+    // 获取当前绑定，移除指定的关联
+    return this.${serviceVarName}.update(id, { ${dtoFieldName}: [] } as any).then(async (result) => {
+      // 重新绑定除了被移除的之外的所有关联
+      const currentBindings = await this.${serviceVarName}.findOne(id);
+      const currentIds = (currentBindings as any).${fieldName}?.map((item: any) => item.id) || [];
+      const newIds = currentIds.filter((itemId: string) => itemId !== relatedId);
+      return this.${serviceVarName}.update(id, { ${dtoFieldName}: newIds } as any);
+    });
+  }`);
+      } else {
+        // 一对一和一对多关系：设置端点
+        endpoints.push(`
+  /**
+   * 设置${binding.description || fieldName}
+   * POST /${resource.path || resource.pluralName || `${resource.name}s`}/:id/set-${fieldName}
+   */
+  @Post(':id/set-${fieldName}')
+  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
+  @Permissions('${resourceName}:update')
+  ${bindMethodName}(@Param('id') id: string, @Body() body: { ${dtoFieldName}: string | null }) {
+    return this.${serviceVarName}.update(id, { ${dtoFieldName}: body.${dtoFieldName} } as any);
+  }`);
+
+        // 清除端点：DELETE /:id/unbind-{field}
+        endpoints.push(`
+  /**
+   * 清除${binding.description || fieldName}
+   * DELETE /${resource.path || resource.pluralName || `${resource.name}s`}/:id/unbind-${fieldName}
+   */
+  @Delete(':id/unbind-${fieldName}')
+  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
+  @Permissions('${resourceName}:update')
+  ${unbindMethodName}(@Param('id') id: string) {
+    return this.${serviceVarName}.update(id, { ${dtoFieldName}: null } as any);
+  }`);
+      }
+    });
+
+    return endpoints.length > 0 ? '\n' + endpoints.join('\n') : '';
+  }
+
+  /**
+   * 判断关系类型
+   */
+  private determineRelationType(binding: RelationBindingConfig): RelationType {
+    if (binding.relationType) {
+      return binding.relationType;
+    }
+    if (binding.junctionModel) {
+      return 'many-to-many';
+    }
+    const isPlural = binding.field.endsWith('s') || binding.field.endsWith('ies');
+    return isPlural ? 'one-to-many' : 'one-to-one';
+  }
+
+  /**
+   * 生成DTO字段名
+   */
+  private generateDtoFieldName(binding: RelationBindingConfig, relationType: RelationType): string {
+    if (binding.dtoFieldName) {
+      return binding.dtoFieldName;
+    }
+    if (relationType === 'many-to-many') {
+      const camelCase = this.toCamelCase(binding.relatedModel);
+      return `${camelCase}Ids`;
+    } else {
+      if (binding.foreignKeyField) {
+        return binding.foreignKeyField;
+      }
+      const isPlural = binding.field.endsWith('s') || binding.field.endsWith('ies');
+      if (isPlural) {
+        const camelCase = this.toCamelCase(binding.relatedModel);
+        return `${camelCase}Id`;
+      } else {
+        return `${binding.field}Id`;
+      }
+    }
   }
 
   /**

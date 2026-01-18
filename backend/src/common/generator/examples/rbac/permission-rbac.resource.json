@@ -1,0 +1,81 @@
+{
+  "name": "permission",
+  "pluralName": "permissions",
+  "path": "permissions",
+  "prismaModel": "Permission",
+  "description": "权限资源（RBAC系统）",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "权限名称"
+    },
+    {
+      "name": "code",
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "权限代码"
+    },
+    {
+      "name": "resource",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "资源名称"
+    },
+    {
+      "name": "action",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "操作类型"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "required": false,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": false,
+      "includeInDetail": true,
+      "description": "权限描述"
+    }
+  ],
+  "operations": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "list": true,
+    "batchDelete": true
+  },
+  "permissions": {
+    "resource": "permission",
+    "createRoles": ["admin"],
+    "updateRoles": ["admin"],
+    "deleteRoles": ["admin"],
+    "requireAuth": true
+  },
+  "defaultPageSize": 10,
+  "hooks": {
+    "beforeCreate": true,
+    "beforeUpdate": true
+  }
+}

@@ -429,10 +429,13 @@ protected async beforeCreate(data: CreateOrderDto): Promise<any> {
   - `query`: 查询参数数组
   - `body`: 请求体参数（仅 POST/PUT/PATCH）
 
-参考示例文件：
-- `../generator/examples/product.resource.json` - 基础 CRUD 示例
-- `../generator/examples/simple-join.resource.json` - 多表关联示例
-- `../generator/examples/multi-join.resource.json` - 复杂多级关联示例
+参考示例文件（按场景分类）：
+- `../generator/examples/ecommerce/product.resource.json` - 基础 CRUD 示例
+- `../generator/examples/ecommerce/order-product-binding.resource.json` - 多表关联示例
+- `../generator/examples/rbac/user-rbac.resource.json` - 多对多关系绑定示例
+- `../generator/examples/content/article-tag-binding.resource.json` - 自定义端点示例
+
+更多示例请查看 `../generator/examples/README.md`
 
 ## 输出格式
 只输出 JSON 格式的 resource.json 配置，确保：

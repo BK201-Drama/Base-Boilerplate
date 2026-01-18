@@ -3,7 +3,7 @@
  * 根据 ResourceDefinition 生成 Service 类
  */
 
-import { ResourceDefinition } from '../types/resource.types';
+import { ResourceDefinition, RelationBindingConfig, RelationType } from '../types/resource.types';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -35,10 +35,23 @@ export class ServiceGenerator {
     const repositoryImports = this.generateRepositoryImports(requiredRepositories);
     const repositoryInjections = this.generateRepositoryInjections(requiredRepositories);
 
+    // 检查是否需要PrismaService（用于关系绑定，特别是多对多关系）
+    const hasRelationBindings = resource.relationBindings && resource.relationBindings.length > 0;
+    const needsPrismaService = hasRelationBindings && resource.relationBindings.some(
+      b => this.determineRelationType(b) === 'many-to-many'
+    );
+    const prismaServiceImport = needsPrismaService ? '\nimport { PrismaService } from \'@/prisma/prisma.service\';' : '';
+    const prismaServiceInjection = needsPrismaService ? ',\n    private readonly prisma: PrismaService' : '';
+
+    // 生成关系绑定处理方法（支持所有关系类型）
+    const relationBindingMethods = hasRelationBindings 
+      ? this.generateRelationBindingMethods(resource, className, updateDtoName)
+      : '';
+
     return `import { Injectable } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { BaseCrudService } from '@/common/services/base-crud.service';
-import { ${className}Repository } from './${resource.name}.repository';${repositoryImports}
+import { ${className}Repository } from './${resource.name}.repository';${repositoryImports}${prismaServiceImport}
 import { ${createDtoName} } from './dto/create-${resource.name}.dto';
 import { ${updateDtoName} } from './dto/update-${resource.name}.dto';
 import { ${entityName} } from '@prisma/client';
@@ -56,11 +69,11 @@ export class ${className}Service extends BaseCrudService<
 
   constructor(
     repository: ${className}Repository,
-    i18n: I18nService${repositoryInjections}
+    i18n: I18nService${repositoryInjections}${prismaServiceInjection}
   ) {
     super(repository, i18n);
   }
-${joinMethods}${hooks}${customEndpointMethods}
+${joinMethods}${hooks}${relationBindingMethods}${customEndpointMethods}
 }
 `;
   }
@@ -602,6 +615,207 @@ ${joinMethods}${hooks}${customEndpointMethods}
       'date': 'Date',
     };
     return typeMap[type] || 'any';
+  }
+
+  /**
+   * 生成关系绑定处理方法（支持一对一、一对多、多对多）
+   */
+  private generateRelationBindingMethods(
+    resource: ResourceDefinition,
+    className: string,
+    updateDtoName: string,
+  ): string {
+    if (!resource.relationBindings || resource.relationBindings.length === 0) {
+      return '';
+    }
+
+    const methods: string[] = [];
+
+    // 重写update方法以处理关系绑定
+    const hasUpdateBindings = resource.relationBindings.some(
+      binding => binding.handleInUpdate !== false
+    );
+
+    if (hasUpdateBindings) {
+      // 预先计算所有需要的字段名和方法名
+      const bindingFields = resource.relationBindings
+        .filter(b => b.handleInUpdate !== false)
+        .map(b => {
+          const relationType = this.determineRelationType(b);
+          const dtoFieldName = b.dtoFieldName || this.generateDtoFieldName(b, relationType);
+          const methodName = `handle${this.toPascalCase(b.field)}Binding`;
+          return { dtoFieldName, methodName, relationType };
+        });
+
+      const destructureFields = bindingFields.map(b => b.dtoFieldName).join(', ');
+      const bindingHandlers = bindingFields.map(b => 
+        `    if (${b.dtoFieldName} !== undefined) {
+      await this.${b.methodName}(id, ${b.dtoFieldName});
+    }`
+      ).join('\n');
+
+      methods.push(`
+  /**
+   * 更新记录（包含关系绑定处理）
+   */
+  async update(id: string, updateDto: ${updateDtoName}) {
+    // 分离关系绑定字段和普通字段
+    const { ${destructureFields}, ...updateData } = updateDto as any;
+
+    // 先执行基础更新
+    const result = await super.update(id, updateData as ${updateDtoName});
+
+    // 处理关系绑定
+${bindingHandlers}
+
+    return result;
+  }`);
+    }
+
+    // 为每个绑定配置生成处理方法
+    resource.relationBindings.forEach((binding) => {
+      const relationType = this.determineRelationType(binding);
+      const methodName = `handle${this.toPascalCase(binding.field)}Binding`;
+      const dtoFieldName = binding.dtoFieldName || this.generateDtoFieldName(binding, relationType);
+
+      if (relationType === 'many-to-many') {
+        // 多对多关系：通过中间表处理
+        if (!binding.junctionModel || !binding.currentModelForeignKey || !binding.relatedModelForeignKey) {
+          throw new Error(`多对多关系绑定必须提供junctionModel、currentModelForeignKey和relatedModelForeignKey`);
+        }
+        const junctionModelVar = this.toCamelCase(binding.junctionModel);
+        const currentModelForeignKey = binding.currentModelForeignKey;
+        const relatedModelForeignKey = binding.relatedModelForeignKey;
+
+        methods.push(`
+  /**
+   * 处理${binding.description || `${binding.field}绑定`}（多对多关系）
+   * @param id 当前记录ID
+   * @param ${dtoFieldName} 关联记录ID数组
+   */
+  private async ${methodName}(id: string, ${dtoFieldName}: string[]) {
+    // 获取当前所有关联记录
+    const currentBindings = await this.prisma.${junctionModelVar}.findMany({
+      where: {
+        ${currentModelForeignKey}: id,
+      },
+    });
+
+    const currentIds = currentBindings.map(b => b.${relatedModelForeignKey});
+    const newIds = ${dtoFieldName} || [];
+    
+    // 计算需要添加和删除的关联
+    const toAdd = newIds.filter(id => !currentIds.includes(id));
+    const toRemove = currentIds.filter(id => !newIds.includes(id));
+
+    // 删除不再需要的关联
+    if (toRemove.length > 0) {
+      await this.prisma.${junctionModelVar}.deleteMany({
+        where: {
+          ${currentModelForeignKey}: id,
+          ${relatedModelForeignKey}: {
+            in: toRemove,
+          },
+        },
+      });
+    }
+
+    // 添加新的关联
+    if (toAdd.length > 0) {
+      await this.prisma.${junctionModelVar}.createMany({
+        data: toAdd.map(${relatedModelForeignKey} => ({
+          ${currentModelForeignKey}: id,
+          ${relatedModelForeignKey},
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }`);
+      } else {
+        // 一对一和一对多关系：直接更新外键字段
+        const foreignKeyField = binding.foreignKeyField || this.generateForeignKeyField(binding, relationType);
+        
+        methods.push(`
+  /**
+   * 处理${binding.description || `${binding.field}绑定`}（${relationType === 'one-to-one' ? '一对一' : '一对多'}关系）
+   * @param id 当前记录ID
+   * @param ${dtoFieldName} 关联记录ID
+   */
+  private async ${methodName}(id: string, ${dtoFieldName}: string | null) {
+    // 直接更新外键字段
+    await this.repository.update(id, {
+      ${foreignKeyField}: ${dtoFieldName} || null,
+    } as any);
+  }`);
+      }
+    });
+
+    return methods.join('\n');
+  }
+
+  /**
+   * 判断关系类型
+   */
+  private determineRelationType(binding: RelationBindingConfig): RelationType {
+    // 如果明确指定了关系类型，使用指定的
+    if (binding.relationType) {
+      return binding.relationType;
+    }
+    
+    // 如果有中间表，则是多对多
+    if (binding.junctionModel) {
+      return 'many-to-many';
+    }
+    
+    // 默认根据字段名判断（复数通常是一对多）
+    const isPlural = binding.field.endsWith('s') || binding.field.endsWith('ies');
+    return isPlural ? 'one-to-many' : 'one-to-one';
+  }
+
+  /**
+   * 生成DTO字段名
+   */
+  private generateDtoFieldName(binding: RelationBindingConfig, relationType: RelationType): string {
+    // 如果明确指定了DTO字段名，使用指定的
+    if (binding.dtoFieldName) {
+      return binding.dtoFieldName;
+    }
+    
+    if (relationType === 'many-to-many') {
+      // 多对多：relatedModel的小写形式 + "Ids"
+      const camelCase = this.toCamelCase(binding.relatedModel);
+      return `${camelCase}Ids`;
+    } else {
+      // 一对一和一对多：使用外键字段名或自动生成
+      if (binding.foreignKeyField) {
+        return binding.foreignKeyField;
+      }
+      // 自动生成：如果field是复数，使用relatedModel + "Id"，否则使用field + "Id"
+      const isPlural = binding.field.endsWith('s') || binding.field.endsWith('ies');
+      if (isPlural) {
+        const camelCase = this.toCamelCase(binding.relatedModel);
+        return `${camelCase}Id`;
+      } else {
+        return `${binding.field}Id`;
+      }
+    }
+  }
+
+  /**
+   * 生成外键字段名
+   */
+  private generateForeignKeyField(binding: RelationBindingConfig, relationType: RelationType): string {
+    if (binding.foreignKeyField) {
+      return binding.foreignKeyField;
+    }
+    // 自动生成：如果field是复数，使用relatedModel + "Id"，否则使用field + "Id"
+    const isPlural = binding.field.endsWith('s') || binding.field.endsWith('ies');
+    if (isPlural) {
+      const camelCase = this.toCamelCase(binding.relatedModel);
+      return `${camelCase}Id`;
+    } else {
+      return `${binding.field}Id`;
+    }
   }
 
   /**

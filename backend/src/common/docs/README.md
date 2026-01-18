@@ -237,12 +237,20 @@ src/
 
 ## 示例配置文件
 
-查看 `../generator/examples/` 目录下的示例：
+查看 `../generator/examples/` 目录下的示例（按场景分类）：
 
-- `product.resource.json` - 基础 CRUD 示例
-- `simple-join.resource.json` - 简单关联查询示例
-- `multi-join.resource.json` - 复杂多级关联示例
-- `custom-endpoints.resource.json` - 自定义接口端点示例
+**RBAC场景** (`rbac/`)：
+- `rbac/user-rbac.resource.json` - 用户资源（包含Role绑定）
+- `rbac/role-rbac.resource.json` - 角色资源（包含Permission绑定）
+
+**电商场景** (`ecommerce/`)：
+- `ecommerce/product.resource.json` - 基础产品资源
+- `ecommerce/order-product-binding.resource.json` - 订单资源（包含Product绑定和关联查询）
+
+**内容管理场景** (`content/`)：
+- `content/article-tag-binding.resource.json` - 文章资源（包含Tag绑定和自定义端点）
+
+更多示例请查看 `../generator/examples/README.md`
 
 ## 编程式使用
 

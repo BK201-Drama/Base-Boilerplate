@@ -1,0 +1,128 @@
+{
+  "name": "user",
+  "pluralName": "users",
+  "path": "users",
+  "prismaModel": "User",
+  "description": "用户资源（RBAC系统）",
+  "fields": [
+    {
+      "name": "username",
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "用户名"
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "validations": [
+        {
+          "type": "email",
+          "message": "validation.email_invalid"
+        }
+      ],
+      "description": "邮箱"
+    },
+    {
+      "name": "password",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": false,
+      "includeInDetail": false,
+      "description": "密码"
+    },
+    {
+      "name": "nickname",
+      "type": "string",
+      "required": false,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "昵称"
+    },
+    {
+      "name": "avatar",
+      "type": "string",
+      "required": false,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "头像URL"
+    },
+    {
+      "name": "status",
+      "type": "enum",
+      "required": true,
+      "defaultValue": "active",
+      "enumValues": ["active", "inactive", "banned"],
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "用户状态"
+    }
+  ],
+  "operations": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "list": true,
+    "batchDelete": true
+  },
+  "permissions": {
+    "resource": "user",
+    "createRoles": ["admin"],
+    "updateRoles": ["admin"],
+    "deleteRoles": ["admin"],
+    "requireAuth": true
+  },
+  "defaultPageSize": 10,
+  "joins": [
+    {
+      "model": "Role",
+      "field": "userRoles",
+      "includeInList": true,
+      "includeInDetail": true,
+      "select": ["id"],
+      "nested": [
+        {
+          "model": "Role",
+          "field": "role",
+          "select": ["id", "name", "code"]
+        }
+      ]
+    }
+  ],
+  "relationBindings": [
+    {
+      "field": "userRoles",
+      "relatedModel": "Role",
+      "junctionModel": "UserRole",
+      "currentModelForeignKey": "userId",
+      "relatedModelForeignKey": "roleId",
+      "dtoFieldName": "roleIds",
+      "handleInUpdate": true,
+      "generateStandaloneEndpoints": false,
+      "description": "用户角色绑定"
+    }
+  ],
+  "hooks": {
+    "beforeCreate": true,
+    "beforeUpdate": true
+  }
+}

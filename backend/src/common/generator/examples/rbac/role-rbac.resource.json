@@ -1,0 +1,90 @@
+{
+  "name": "role",
+  "pluralName": "roles",
+  "path": "roles",
+  "prismaModel": "Role",
+  "description": "角色资源（RBAC系统）",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "角色名称"
+    },
+    {
+      "name": "code",
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "角色代码"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "required": false,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": false,
+      "includeInDetail": true,
+      "description": "角色描述"
+    }
+  ],
+  "operations": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "list": true,
+    "batchDelete": true
+  },
+  "permissions": {
+    "resource": "role",
+    "createRoles": ["admin"],
+    "updateRoles": ["admin"],
+    "deleteRoles": ["admin"],
+    "requireAuth": true
+  },
+  "defaultPageSize": 10,
+  "joins": [
+    {
+      "model": "Permission",
+      "field": "rolePermissions",
+      "includeInList": true,
+      "includeInDetail": true,
+      "select": ["id"],
+      "nested": [
+        {
+          "model": "Permission",
+          "field": "permission",
+          "select": ["id", "name", "code", "resource", "action"]
+        }
+      ]
+    }
+  ],
+  "relationBindings": [
+    {
+      "field": "rolePermissions",
+      "relatedModel": "Permission",
+      "junctionModel": "RolePermission",
+      "currentModelForeignKey": "roleId",
+      "relatedModelForeignKey": "permissionId",
+      "dtoFieldName": "permissionIds",
+      "handleInUpdate": true,
+      "generateStandaloneEndpoints": false,
+      "description": "角色权限绑定"
+    }
+  ],
+  "hooks": {
+    "beforeCreate": true,
+    "beforeUpdate": true
+  }
+}

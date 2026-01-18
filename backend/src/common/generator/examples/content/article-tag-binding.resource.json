@@ -1,0 +1,84 @@
+{
+  "name": "article",
+  "pluralName": "articles",
+  "path": "articles",
+  "prismaModel": "Article",
+  "description": "文章资源（包含标签绑定）",
+  "fields": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "文章标题"
+    },
+    {
+      "name": "content",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": false,
+      "includeInDetail": true,
+      "description": "文章内容"
+    },
+    {
+      "name": "authorId",
+      "type": "relation",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": false,
+      "includeInList": false,
+      "includeInDetail": true,
+      "relation": {
+        "model": "User",
+        "includeInQuery": true,
+        "select": ["id", "username", "nickname"]
+      },
+      "description": "作者ID"
+    }
+  ],
+  "operations": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "list": true
+  },
+  "permissions": {
+    "resource": "article",
+    "requireAuth": true,
+    "createRoles": ["user", "admin"],
+    "updateRoles": ["user", "admin"]
+  },
+  "defaultPageSize": 20,
+  "joins": [
+    {
+      "model": "Tag",
+      "field": "articleTags",
+      "includeInList": true,
+      "includeInDetail": true,
+      "select": ["id", "name", "color"]
+    }
+  ],
+  "relationBindings": [
+    {
+      "field": "articleTags",
+      "relatedModel": "Tag",
+      "junctionModel": "ArticleTag",
+      "currentModelForeignKey": "articleId",
+      "relatedModelForeignKey": "tagId",
+      "dtoFieldName": "tagIds",
+      "handleInUpdate": true,
+      "generateStandaloneEndpoints": true,
+      "description": "文章标签绑定"
+    }
+  ],
+  "hooks": {
+    "beforeCreate": true,
+    "beforeUpdate": true
+  }
+}
