@@ -6,6 +6,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService extends BaseCrudService<
@@ -77,12 +78,18 @@ export class UserService extends BaseCrudService<
     });
   }
   protected async beforeCreate(data: CreateUserDto): Promise<any> {
-    // TODO: 实现创建前处理逻辑
+    // 对密码进行加密
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
     return data;
   }
 
   protected async beforeUpdate(id: number, data: UpdateUserDto): Promise<any> {
-    // TODO: 实现更新前处理逻辑
+    // 如果更新密码，对密码进行加密
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
     return data;
   }
   /**

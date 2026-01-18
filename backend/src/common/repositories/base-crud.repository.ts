@@ -151,11 +151,21 @@ export abstract class BaseCrudRepository<
     options?: CreateOptions<TModel>,
   ): Promise<TModel> {
     const model = this.getModelDelegate();
-    return model.create({
+
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
       data,
-      select: options?.select || this.defaultSelect,
-      include: options?.include,
-    });
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
+    return model.create(queryOptions);
   }
 
   /**
@@ -171,15 +181,24 @@ export abstract class BaseCrudRepository<
 
     const model = this.getModelDelegate();
 
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
+      skip,
+      take: limit,
+      where: options?.where,
+      orderBy: options?.orderBy || { createdAt: 'desc' },
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
     const [data, total] = await Promise.all([
-      model.findMany({
-        skip,
-        take: limit,
-        where: options?.where,
-        select: options?.select || this.defaultSelect,
-        include: options?.include,
-        orderBy: options?.orderBy || { createdAt: 'desc' },
-      }),
+      model.findMany(queryOptions),
       model.count({
         where: options?.where,
       }),
@@ -200,12 +219,21 @@ export abstract class BaseCrudRepository<
   async findMany(options?: FindManyOptions<TModel>): Promise<TModel[]> {
     const model = this.getModelDelegate();
 
-    return model.findMany({
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
       where: options?.where,
-      select: options?.select || this.defaultSelect,
-      include: options?.include,
       orderBy: options?.orderBy || { createdAt: 'desc' },
-    });
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
+    return model.findMany(queryOptions);
   }
 
   /**
@@ -220,11 +248,20 @@ export abstract class BaseCrudRepository<
   ): Promise<TModel | null> {
     const model = this.getModelDelegate();
 
-    return model.findUnique({
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
       where: { id },
-      select: options?.select || this.defaultSelect,
-      include: options?.include,
-    });
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
+    return model.findUnique(queryOptions);
   }
 
   /**
@@ -235,12 +272,21 @@ export abstract class BaseCrudRepository<
   ): Promise<TModel | null> {
     const model = this.getModelDelegate();
 
-    return model.findFirst({
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
       where: options?.where,
-      select: options?.select || this.defaultSelect,
-      include: options?.include,
       orderBy: options?.orderBy,
-    });
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
+    return model.findFirst(queryOptions);
   }
 
   /**
@@ -253,12 +299,21 @@ export abstract class BaseCrudRepository<
   ): Promise<TModel> {
     const model = this.getModelDelegate();
 
-    return model.update({
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
       where: { id },
       data,
-      select: options?.select || this.defaultSelect,
-      include: options?.include,
-    });
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
+    return model.update(queryOptions);
   }
 
   /**
@@ -362,15 +417,24 @@ export abstract class BaseCrudRepository<
 
     const model = this.getModelDelegate();
 
-    return model.findMany({
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
       where: {
         id: {
           in: ids,
         },
       },
-      select: options?.select || this.defaultSelect,
-      include: options?.include,
-    });
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
+    return model.findMany(queryOptions);
   }
 
   /**
@@ -388,14 +452,23 @@ export abstract class BaseCrudRepository<
   ): Promise<TModel[]> {
     const model = this.getModelDelegate();
 
-    return model.findMany({
+    // Prisma 不允许同时使用 select 和 include
+    const queryOptions: any = {
       where,
-      select: options?.select || this.defaultSelect,
-      include: options?.include,
       orderBy: options?.orderBy,
       take: options?.take,
       skip: options?.skip,
-    });
+    };
+
+    if (options?.include) {
+      // 如果提供了 include，就不使用 select
+      queryOptions.include = options.include;
+    } else {
+      // 否则使用 select
+      queryOptions.select = options?.select || this.defaultSelect;
+    }
+
+    return model.findMany(queryOptions);
   }
 }
 
