@@ -39,6 +39,7 @@ export class CodeGenerator {
   ): void {
     const {
       outputDir = path.join(process.cwd(), 'src'),
+      modulesDir,
       overwrite = false,
       generateDto = true,
       generateRepository = true,
@@ -48,47 +49,52 @@ export class CodeGenerator {
       generatePrismaSchema = true,
     } = options;
 
+    // 计算实际输出目录
+    const actualOutputDir = modulesDir
+      ? path.join(outputDir, modulesDir)
+      : outputDir;
+
     console.log(`\n🚀 开始生成 ${resource.name} 的 CRUD 代码...\n`);
 
     // 生成 DTO
     if (generateDto) {
       console.log(`📝 生成 DTO 文件...`);
-      this.dtoGenerator.writeFiles(resource, outputDir, overwrite);
+      this.dtoGenerator.writeFiles(resource, actualOutputDir, overwrite);
       console.log(`✅ DTO 文件已生成`);
     }
 
     // 生成 Repository
     if (generateRepository) {
       console.log(`🗄️  生成 Repository 文件...`);
-      this.repositoryGenerator.writeFile(resource, outputDir, overwrite);
+      this.repositoryGenerator.writeFile(resource, actualOutputDir, overwrite);
       console.log(`✅ Repository 文件已生成`);
     }
 
     // 生成 Service
     if (generateService) {
       console.log(`🔧 生成 Service 文件...`);
-      this.serviceGenerator.writeFile(resource, outputDir, overwrite);
+      this.serviceGenerator.writeFile(resource, actualOutputDir, overwrite);
       console.log(`✅ Service 文件已生成`);
     }
 
     // 生成 Controller
     if (generateController) {
       console.log(`🎮 生成 Controller 文件...`);
-      this.controllerGenerator.writeFile(resource, outputDir, overwrite);
+      this.controllerGenerator.writeFile(resource, actualOutputDir, overwrite);
       console.log(`✅ Controller 文件已生成`);
     }
 
     // 生成 Module
     if (generateModule) {
       console.log(`📦 生成 Module 文件...`);
-      this.moduleGenerator.writeFile(resource, outputDir, overwrite);
+      this.moduleGenerator.writeFile(resource, actualOutputDir, overwrite);
       console.log(`✅ Module 文件已生成`);
     }
 
     // 更新 AppModule
     if (options.updateAppModule) {
       console.log(`📋 更新 AppModule...`);
-      this.updateAppModule(resource, outputDir);
+      this.updateAppModule(resource, outputDir, modulesDir);
       console.log(`✅ AppModule 已更新`);
     }
 
@@ -116,6 +122,7 @@ export class CodeGenerator {
   private updateAppModule(
     resource: ResourceDefinition,
     outputDir: string,
+    modulesDir?: string,
   ): void {
     const appModulePath = path.join(outputDir, 'app.module.ts');
 
@@ -134,8 +141,13 @@ export class CodeGenerator {
       return;
     }
 
+    // 计算导入路径
+    const modulePath = modulesDir
+      ? `${modulesDir}/${resource.name}/${resource.name}.module`
+      : `${resource.name}/${resource.name}.module`;
+
     // 添加导入
-    const importStatement = `import { ${moduleName} } from './${resource.name}/${resource.name}.module';`;
+    const importStatement = `import { ${moduleName} } from './${modulePath}';`;
     const importsMatch = content.match(/import\s+.*from\s+['"]\.\/.*['"];?/g);
 
     if (importsMatch) {

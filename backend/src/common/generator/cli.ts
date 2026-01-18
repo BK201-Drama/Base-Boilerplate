@@ -21,6 +21,7 @@ const modelName = args[0];
 const fromSchema = args.includes('--from-schema');
 const configFile = args.find((arg) => arg.startsWith('--config='))?.split('=')[1];
 const overwrite = args.includes('--overwrite');
+const modulesDir = args.find((arg) => arg.startsWith('--modulesDir='))?.split('=')[1];
 
 if (!modelName) {
   console.error('❌ 错误: 请提供模型名称');
@@ -29,6 +30,8 @@ if (!modelName) {
   console.log('  npm run generate:crud <model-name> -- --from-schema');
   console.log('  npm run generate:crud <model-name> -- --config <config-file>');
   console.log('  npm run generate:crud <model-name> -- --overwrite');
+  console.log('  npm run generate:crud <model-name> -- --modulesDir=modules');
+  console.log('  npm run generate:crud <model-name> -- --modulesDir=modules/takeout');
   process.exit(1);
 }
 
@@ -60,6 +63,7 @@ async function main() {
     // 生成代码
     generator.generate(resource, {
       overwrite,
+      modulesDir,
       generateDto: true,
       generateService: true,
       generateController: true,
@@ -69,8 +73,11 @@ async function main() {
     });
 
     const className = toPascalCase(resource.name);
+    const modulePath = modulesDir
+      ? `src/${modulesDir}/${resource.name}/`
+      : `src/${resource.name}/`;
     console.log('\n📚 下一步:');
-    console.log(`1. 检查生成的文件: src/${resource.name}/`);
+    console.log(`1. 检查生成的文件: ${modulePath}`);
     console.log(`2. 根据需要调整 Service 和 Controller`);
     console.log(`3. 确保 AppModule 已正确导入 ${className}Module`);
     console.log(`4. 运行应用并测试 API 端点\n`);

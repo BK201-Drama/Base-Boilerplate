@@ -356,6 +356,13 @@ export interface CodeGenerationOptions {
    */
   outputDir?: string;
   /**
+   * 模块目录（相对于 outputDir，如 'modules' 或 'modules/takeout'）
+   * 如果设置，代码将生成到 outputDir/modulesDir/resourceName/
+   * 例如：modulesDir='modules' -> src/modules/users/
+   *      modulesDir='modules/takeout' -> src/modules/takeout/restaurant/
+   */
+  modulesDir?: string;
+  /**
    * 是否覆盖已存在的文件
    */
   overwrite?: boolean;

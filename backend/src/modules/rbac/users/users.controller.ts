@@ -12,11 +12,11 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { PermissionsGuard } from '../common/guards/permissions.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { Permissions } from '../common/decorators/permissions.decorator';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { PermissionsGuard } from '@/common/guards/permissions.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { Permissions } from '@/common/decorators/permissions.decorator';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
