@@ -98,6 +98,31 @@ export interface IBaseCrudRepository<
     data: TUpdateData,
     options?: UpdateOptions<TModel>,
   ): Promise<number>;
+
+  /**
+   * 根据多个 ID 查询记录（细粒度方法）
+   */
+  findByIds(
+    ids: string[],
+    options?: {
+      select?: any;
+      include?: any;
+    },
+  ): Promise<TModel[]>;
+
+  /**
+   * 根据条件查询多条记录（细粒度方法，与 findMany 类似但更明确）
+   */
+  findByCondition(
+    where: any,
+    options?: {
+      select?: any;
+      include?: any;
+      orderBy?: any;
+      take?: number;
+      skip?: number;
+    },
+  ): Promise<TModel[]>;
 }
 
 /**
@@ -319,6 +344,58 @@ export abstract class BaseCrudRepository<
     });
 
     return result.count;
+  }
+
+  /**
+   * 根据多个 ID 查询记录（细粒度方法）
+   */
+  async findByIds(
+    ids: string[],
+    options?: {
+      select?: any;
+      include?: any;
+    },
+  ): Promise<TModel[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const model = this.getModelDelegate();
+
+    return model.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      select: options?.select || this.defaultSelect,
+      include: options?.include,
+    });
+  }
+
+  /**
+   * 根据条件查询多条记录（细粒度方法）
+   */
+  async findByCondition(
+    where: any,
+    options?: {
+      select?: any;
+      include?: any;
+      orderBy?: any;
+      take?: number;
+      skip?: number;
+    },
+  ): Promise<TModel[]> {
+    const model = this.getModelDelegate();
+
+    return model.findMany({
+      where,
+      select: options?.select || this.defaultSelect,
+      include: options?.include,
+      orderBy: options?.orderBy,
+      take: options?.take,
+      skip: options?.skip,
+    });
   }
 }
 

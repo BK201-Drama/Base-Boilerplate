@@ -9,6 +9,7 @@ import { RepositoryGenerator } from './generators/repository.generator';
 import { ServiceGenerator } from './generators/service.generator';
 import { ControllerGenerator } from './generators/controller.generator';
 import { ModuleGenerator } from './generators/module.generator';
+import { PrismaSchemaGenerator } from './generators/prisma-schema.generator';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -18,6 +19,7 @@ export class CodeGenerator {
   private serviceGenerator: ServiceGenerator;
   private controllerGenerator: ControllerGenerator;
   private moduleGenerator: ModuleGenerator;
+  private prismaSchemaGenerator: PrismaSchemaGenerator;
 
   constructor() {
     this.dtoGenerator = new DtoGenerator();
@@ -25,6 +27,7 @@ export class CodeGenerator {
     this.serviceGenerator = new ServiceGenerator();
     this.controllerGenerator = new ControllerGenerator();
     this.moduleGenerator = new ModuleGenerator();
+    this.prismaSchemaGenerator = new PrismaSchemaGenerator();
   }
 
   /**
@@ -42,6 +45,7 @@ export class CodeGenerator {
       generateService = true,
       generateController = true,
       generateModule = true,
+      generatePrismaSchema = true,
     } = options;
 
     console.log(`\n🚀 开始生成 ${resource.name} 的 CRUD 代码...\n`);
@@ -95,6 +99,14 @@ export class CodeGenerator {
       console.log(`✅ 国际化文件已生成`);
     }
 
+    // 生成 Prisma Schema
+    if (generatePrismaSchema) {
+      console.log(`📋 生成 Prisma Schema...`);
+      const useSeparateFiles = options.useSeparateSchemaFiles !== false; // 默认 true
+      this.prismaSchemaGenerator.writeToSchemaFile(resource, undefined, useSeparateFiles);
+      console.log(`✅ Prisma Schema 已生成`);
+    }
+
     console.log(`\n✨ ${resource.name} 的 CRUD 代码生成完成！\n`);
   }
 
@@ -135,14 +147,20 @@ export class CodeGenerator {
       fs.writeFileSync(appModulePath, newContent);
     }
 
-    // 添加到 imports 数组
-    const importsArrayMatch = content.match(/imports:\s*\[([^\]]+)\]/s);
-    if (importsArrayMatch) {
-      const importsArray = importsArrayMatch[1];
+    // 添加到 @Module 装饰器的 imports 数组
+    // 匹配 @Module({ imports: [...] }) 中的 imports 数组
+    const moduleDecoratorMatch = content.match(/@Module\s*\(\s*\{[^}]*imports:\s*\[([^\]]+)\]/s);
+    if (moduleDecoratorMatch) {
+      const importsArray = moduleDecoratorMatch[1];
+      // 检查是否已经存在
+      if (importsArray.includes(moduleName)) {
+        console.log(`ℹ️  ${moduleName} 已在 AppModule 的 imports 中`);
+        return;
+      }
       const newImportsArray = `${importsArray}\n    ${moduleName},`;
       const newContent = content.replace(
-        /imports:\s*\[([^\]]+)\]/s,
-        `imports: [${newImportsArray}\n  ]`,
+        /(@Module\s*\(\s*\{[^}]*imports:\s*\[)([^\]]+)(\])/s,
+        `$1${newImportsArray}\n  $3`,
       );
       fs.writeFileSync(appModulePath, newContent);
     }

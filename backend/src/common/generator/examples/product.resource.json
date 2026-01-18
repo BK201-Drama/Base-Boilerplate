@@ -101,7 +101,6 @@
       "includeInDetail": true,
       "relation": {
         "model": "Category",
-        "type": "many-to-one",
         "includeInQuery": true,
         "select": ["id", "name"]
       },
@@ -139,7 +138,6 @@
     "beforeUpdate": true,
     "afterUpdate": false,
     "beforeDelete": true
-  },
-  "customMethods": []
+  }
 }
 

@@ -238,6 +238,80 @@ generator.generate(resource, {
 }
 ```
 
+### 多表关联配置（Joins）
+
+支持配置多个关联表，在 list 和 detail 查询中自动包含关联数据。例如：A join B join C。
+
+```typescript
+{
+  joins: [
+    {
+      model: "User",              // 关联的模型名称（Prisma模型名）
+      field: "user",              // 关联字段名称（必须与Prisma Schema中的字段名一致）
+      includeInList: true,        // 是否在列表查询中包含（默认：true）
+      includeInDetail: true,      // 是否在详情查询中包含（默认：true）
+      select: ["id", "username", "email"],  // 需要选择的字段（可选，不指定则选择所有字段）
+      nested: [                   // 嵌套关联（支持多级关联，如 A -> B -> C）
+        {
+          model: "Role",
+          field: "userRoles",
+          select: ["id", "name", "code"]
+        }
+      ]
+    },
+    {
+      model: "Product",
+      field: "products",
+      includeInList: true,
+      includeInDetail: true,
+      select: ["id", "name", "price"]
+    }
+  ]
+}
+```
+
+**使用场景示例：**
+
+1. **订单列表需要包含用户和产品信息**：
+   ```json
+   {
+     "joins": [
+       { "model": "User", "field": "user", "select": ["id", "username", "email"] },
+       { "model": "Product", "field": "products", "select": ["id", "name", "price"] }
+     ]
+   }
+   ```
+   
+
+2. **操作日志需要包含用户、角色和权限信息（三级关联）**：
+   ```json
+   {
+     "joins": [
+       {
+         "model": "User",
+         "field": "user",
+         "select": ["id", "username"],
+         "nested": [
+           {
+             "model": "Role",
+             "field": "userRoles",
+             "select": ["id", "name"],
+             "nested": [
+               {
+                 "model": "Permission",
+                 "field": "rolePermissions",
+                 "select": ["id", "name", "code"]
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+   ```
+
+配置后，生成器会自动在 Service 中重写 `findAll` 和 `findOne` 方法，使用 Prisma 的 `include` 来包含关联数据。
+
 ## 生命周期钩子
 
 在资源定义中启用钩子：
@@ -256,17 +330,51 @@ generator.generate(resource, {
 
 生成器会在 Service 中创建对应的钩子方法模板。
 
-## 自定义方法
+## 自定义接口端点
 
-在资源定义中添加自定义方法：
+在资源定义中配置自定义接口端点（推荐方式）：
 
-```typescript
+```json
 {
-  customMethods: [
-    "async findByStatus(status: string) { return this.findMany({ where: { status } }); }"
+  "customEndpoints": [
+    {
+      "path": "statistics",
+      "method": "get",
+      "description": "获取统计数据",
+      "requireAuth": true,
+      "roles": ["admin"],
+      "permission": "order:read",
+      "params": {
+        "query": [
+          {
+            "name": "startDate",
+            "type": "date",
+            "required": false,
+            "description": "开始日期"
+          }
+        ]
+      }
+    },
+    {
+      "path": "export",
+      "method": "post",
+      "description": "导出数据",
+      "requireAuth": true,
+      "roles": ["admin"],
+      "permission": "order:export",
+      "params": {
+        "body": {
+          "type": "ExportOrderDto"
+        }
+      }
+    }
   ]
 }
 ```
+
+配置后，生成器会自动：
+- 在 Service 中生成对应的方法（方法体需要手动实现）
+- 在 Controller 中生成对应的端点（包含权限和角色控制）
 
 ## 权限配置
 
@@ -336,9 +444,32 @@ models.forEach(model => {
 5. **生成后检查**：生成代码后检查并调整生成的代码
 6. **保持分层清晰**：Controller -> Service -> Repository -> Database
 
+## 工作流程
+
+### AI 辅助生成（推荐）
+
+**完整工作流程：**
+```
+产品文档/技术文档 → AI 生成 resource.json → 代码生成器 → CRUD 代码
+```
+
+1. **准备文档**：产品文档 + 技术文档（Prisma Schema）
+2. **AI 生成配置**：使用 AI 根据文档生成 `resource.json`
+   - 提示词模板：参考 [AI_PROMPT_TEMPLATE.md](./AI_PROMPT_TEMPLATE.md)
+3. **生成代码**：`npm run generate:crud <name> -- --config <file>`
+4. **调整与测试**：根据业务需求调整生成的代码
+
+详细流程：参考 [WORKFLOW.md](./WORKFLOW.md)
+
 ## 示例
 
-查看 `examples/` 目录下的示例配置文件。
+查看 `examples/` 目录下的示例配置文件：
+
+- `product.resource.json` - 基础 CRUD 示例
+- `simple-join.resource.json` - 多表关联示例（A join B join C）
+- `multi-join.resource.json` - 复杂多级关联示例（三级嵌套）
+- `join-strategy.resource.json` - 查询策略示例（SQL JOIN vs 内存拼接）
+- `custom-endpoints.resource.json` - 自定义接口端点示例
 
 ## 故障排除
 

@@ -1,0 +1,73 @@
+{
+  "name": "order",
+  "pluralName": "orders",
+  "path": "orders",
+  "prismaModel": "Order",
+  "description": "订单资源（包含用户和产品信息）",
+  "fields": [
+    {
+      "name": "orderNumber",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": false,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "订单号"
+    },
+    {
+      "name": "totalAmount",
+      "type": "number",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "订单总金额"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "required": true,
+      "includeInCreate": true,
+      "includeInUpdate": true,
+      "includeInList": true,
+      "includeInDetail": true,
+      "description": "订单状态"
+    }
+  ],
+  "operations": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "list": true
+  },
+  "permissions": {
+    "resource": "order",
+    "requireAuth": true,
+    "createRoles": ["user", "admin"],
+    "updateRoles": ["admin"]
+  },
+  "defaultPageSize": 20,
+  "joins": [
+    {
+      "model": "User",
+      "field": "user",
+      "includeInList": true,
+      "includeInDetail": true,
+      "select": ["id", "username", "email", "nickname"]
+    },
+    {
+      "model": "Product",
+      "field": "products",
+      "includeInList": true,
+      "includeInDetail": true,
+      "select": ["id", "name", "price"]
+    }
+  ],
+  "hooks": {
+    "beforeCreate": true,
+    "afterCreate": true
+  }
+}

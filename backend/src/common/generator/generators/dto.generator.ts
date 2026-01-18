@@ -3,7 +3,7 @@
  * 根据 ResourceDefinition 生成 Create 和 Update DTO
  */
 
-import { ResourceDefinition, FieldConfig } from '../types/resource.types';
+import { ResourceDefinition, FieldConfig, FieldType } from '../types/resource.types';
 import * as path from 'path';
 import * as fs from 'fs';
 

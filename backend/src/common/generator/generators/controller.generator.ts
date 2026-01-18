@@ -10,6 +10,7 @@ import * as fs from 'fs';
 export class ControllerGenerator {
   /**
    * 生成 Controller 代码
+   * 生成完整的 Controller 类，支持扩展自定义方法
    */
   generateController(resource: ResourceDefinition): string {
     const className = this.toPascalCase(resource.name);
@@ -25,10 +26,20 @@ export class ControllerGenerator {
 
     // 生成操作端点
     const endpoints = this.generateEndpoints(resource, resourceName, requireAuth, createRoles, updateRoles, deleteRoles);
+    
+    // 生成自定义端点
+    const customEndpoints = this.generateCustomEndpoints(resource, resourceName, requireAuth);
+    
+    // 生成导入语句
+    const createDtoName = `Create${className}Dto`;
+    const updateDtoName = `Update${className}Dto`;
+    const imports = this.generateImports(requireAuth, resource.operations, resource.customEndpoints);
+    const serviceVarName = this.toCamelCase(serviceName);
 
-    return `import { Controller } from '@nestjs/common';
+    return `${imports}
 import { ${serviceName} } from './${resource.name}.service';
-import { baseController } from '../common/utils/crud-controller.factory';
+import { ${createDtoName} } from './dto/create-${resource.name}.dto';
+import { ${updateDtoName} } from './dto/update-${resource.name}.dto';
 
 /**
  * ${resource.description || `${className} CRUD Controller`}
@@ -39,15 +50,85 @@ import { baseController } from '../common/utils/crud-controller.factory';
  * - GET /${routePath}/:id - 详情
  * - PATCH /${routePath}/:id - 更新
  * - DELETE /${routePath}/:id - 删除
+ *
+ * 注意：你可以在本类中添加自定义方法，例如：
+ * \`\`\`typescript
+ * @Get('custom-endpoint')
+ * @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+ * @Permissions('${resourceName}:read')
+ * customMethod(@Param('id') id: string) {
+ *   return this.${serviceVarName}.customMethod(id);
+ * }
+ * \`\`\`
  */
-export const ${className}Controller = baseController('${resourceName}', {
-  path: '${routePath}',
-  ${requireAuth ? '' : 'requireAuth: false,'}
-  ${createRoles.length > 0 ? `createRoles: [${createRoles.map(r => `'${r}'`).join(', ')}],` : ''}
-  ${updateRoles.length > 0 ? `updateRoles: [${updateRoles.map(r => `'${r}'`).join(', ')}],` : ''}
-  ${deleteRoles.length > 0 ? `deleteRoles: [${deleteRoles.map(r => `'${r}'`).join(', ')}],` : ''}
-})(${serviceName});
+@Controller('${routePath}')
+${requireAuth ? '@UseGuards(JwtAuthGuard)' : ''}
+export class ${className}Controller {
+  constructor(private readonly ${serviceVarName}: ${serviceName}) {}
+${endpoints}${customEndpoints}
+}
 `;
+  }
+
+  /**
+   * 生成导入语句
+   */
+  private generateImports(
+    requireAuth: boolean, 
+    operations?: ResourceDefinition['operations'],
+    customEndpoints?: ResourceDefinition['customEndpoints']
+  ): string {
+    const imports = new Set<string>(['Controller']);
+    
+    if (operations?.create !== false) {
+      imports.add('Post');
+      imports.add('Body');
+    }
+    if (operations?.list !== false || operations?.read !== false) {
+      imports.add('Get');
+      imports.add('Param');
+    }
+    if (operations?.update !== false) imports.add('Patch');
+    if (operations?.delete !== false) imports.add('Delete');
+    if (operations?.list !== false) {
+      imports.add('Query');
+      imports.add('ParseIntPipe');
+      imports.add('DefaultValuePipe');
+    }
+    
+    // 检查自定义端点需要的导入
+    if (customEndpoints && customEndpoints.length > 0) {
+      customEndpoints.forEach(endpoint => {
+        if (endpoint.method === 'get') imports.add('Get');
+        if (endpoint.method === 'post') imports.add('Post');
+        if (endpoint.method === 'put') imports.add('Put');
+        if (endpoint.method === 'patch') imports.add('Patch');
+        if (endpoint.method === 'delete') imports.add('Delete');
+        if (endpoint.params?.path && endpoint.params.path.length > 0) imports.add('Param');
+        if (endpoint.params?.query && endpoint.params.query.length > 0) imports.add('Query');
+        if (endpoint.params?.body && ['post', 'put', 'patch'].includes(endpoint.method)) {
+          imports.add('Body');
+        }
+      });
+    }
+    
+    if (requireAuth || operations?.create !== false || operations?.update !== false || operations?.delete !== false || 
+        (customEndpoints && customEndpoints.some(e => e.requireAuth !== false))) {
+      imports.add('UseGuards');
+    }
+    
+    let importStr = `import {\n  ${Array.from(imports).join(',\n  ')},\n} from '@nestjs/common';`;
+    
+    if (requireAuth || (customEndpoints && customEndpoints.some(e => e.requireAuth !== false))) {
+      importStr += `\nimport { JwtAuthGuard } from '../../auth/jwt-auth.guard';`;
+    }
+    
+    importStr += `\nimport { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionsGuard } from '../common/guards/permissions.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';`;
+    
+    return importStr;
   }
 
   /**
@@ -62,6 +143,8 @@ export const ${className}Controller = baseController('${resourceName}', {
     deleteRoles: string[],
   ): string {
     const className = this.toPascalCase(resource.name);
+    const serviceName = `${className}Service`;
+    const serviceVarName = this.toCamelCase(serviceName);
     const routePath = resource.path || resource.pluralName || `${resource.name}s`;
     const createDtoName = `Create${className}Dto`;
     const updateDtoName = `Update${className}Dto`;
@@ -75,7 +158,7 @@ export const ${className}Controller = baseController('${resourceName}', {
   ${createRoles.length > 0 ? `@Roles(${createRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:create')
   create(@Body() createDto: ${createDtoName}) {
-    return this.service.create(createDto);
+    return this.${serviceVarName}.create(createDto);
   }`);
     }
 
@@ -88,7 +171,7 @@ export const ${className}Controller = baseController('${resourceName}', {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
   ) {
-    return this.service.findAll({ page, limit });
+    return this.${serviceVarName}.findAll({ page, limit });
   }`);
     }
 
@@ -98,7 +181,7 @@ export const ${className}Controller = baseController('${resourceName}', {
   @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
   @Permissions('${resourceName}:read')
   findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+    return this.${serviceVarName}.findOne(id);
   }`);
     }
 
@@ -109,7 +192,7 @@ export const ${className}Controller = baseController('${resourceName}', {
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
   update(@Param('id') id: string, @Body() updateDto: ${updateDtoName}) {
-    return this.service.update(id, updateDto);
+    return this.${serviceVarName}.update(id, updateDto);
   }`);
     }
 
@@ -120,7 +203,19 @@ export const ${className}Controller = baseController('${resourceName}', {
   ${deleteRoles.length > 0 ? `@Roles(${deleteRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:delete')
   remove(@Param('id') id: string) {
-    return this.service.remove(id);
+    return this.${serviceVarName}.remove(id);
+  }`);
+    }
+    
+    // 批量删除
+    if (resource.operations?.batchDelete === true) {
+      endpoints.push(`
+  @Delete('batch')
+  @UseGuards(${requireAuth ? 'JwtAuthGuard, ' : ''}RolesGuard, PermissionsGuard)
+  ${deleteRoles.length > 0 ? `@Roles(${deleteRoles.map(r => `'${r}'`).join(', ')})` : ''}
+  @Permissions('${resourceName}:delete')
+  batchDelete(@Body() body: { ids: string[] }) {
+    return this.${serviceVarName}.deleteMany(body.ids);
   }`);
     }
 
@@ -128,10 +223,129 @@ export const ${className}Controller = baseController('${resourceName}', {
   }
 
   /**
+   * 生成自定义端点
+   */
+  private generateCustomEndpoints(
+    resource: ResourceDefinition,
+    resourceName: string,
+    defaultRequireAuth: boolean,
+  ): string {
+    if (!resource.customEndpoints || resource.customEndpoints.length === 0) {
+      return '';
+    }
+
+    const className = this.toPascalCase(resource.name);
+    const serviceName = `${className}Service`;
+    const serviceVarName = this.toCamelCase(serviceName);
+    const endpoints: string[] = [];
+
+    resource.customEndpoints.forEach(endpoint => {
+      const methodName = endpoint.serviceMethod || this.generateServiceMethodName(endpoint.path, endpoint.method);
+      const requireAuth = endpoint.requireAuth !== undefined ? endpoint.requireAuth : defaultRequireAuth;
+      const methodDecorator = this.getMethodDecorator(endpoint.method);
+      const pathDecorator = endpoint.path ? `@${methodDecorator}('${endpoint.path}')` : `@${methodDecorator}()`;
+      
+      // 生成参数装饰器和参数
+      const params: string[] = [];
+      const paramDecorators: string[] = [];
+      
+      // 路径参数
+      if (endpoint.params?.path) {
+        endpoint.params.path.forEach(param => {
+          const paramName = param.replace(':', '');
+          paramDecorators.push(`@Param('${paramName}') ${paramName}: string`);
+          params.push(`${paramName}: string`);
+        });
+      }
+      
+      // 查询参数
+      if (endpoint.params?.query && endpoint.params.query.length > 0) {
+        const queryParams = endpoint.params.query.map(q => {
+          const optional = q.required ? '' : '?';
+          return `${q.name}${optional}: ${q.type}`;
+        }).join(', ');
+        paramDecorators.push(`@Query() query: { ${queryParams} }`);
+        params.push(`query`);
+      }
+      
+      // 请求体参数
+      if (endpoint.params?.body && ['post', 'put', 'patch'].includes(endpoint.method)) {
+        const bodyType = endpoint.params.body.type || 'any';
+        paramDecorators.push(`@Body() body: ${bodyType}`);
+        params.push(`body`);
+      }
+
+      const paramsStr = params.length > 0 ? params.join(', ') : '';
+      const paramDecoratorsStr = paramDecorators.length > 0 ? '\n    ' + paramDecorators.join(',\n    ') : '';
+
+      // 生成权限和角色装饰器
+      const guards: string[] = [];
+      if (requireAuth) guards.push('JwtAuthGuard');
+      guards.push('RolesGuard', 'PermissionsGuard');
+      
+      const rolesDecorator = endpoint.roles && endpoint.roles.length > 0
+        ? `\n  @Roles(${endpoint.roles.map(r => `'${r}'`).join(', ')})`
+        : '';
+      
+      const permissionDecorator = endpoint.permission
+        ? `\n  @Permissions('${endpoint.permission}')`
+        : '';
+
+      const comment = endpoint.description 
+        ? `\n  /**\n   * ${endpoint.description}\n   */`
+        : '';
+
+      const controllerMethodName = this.toCamelCase(methodName);
+      endpoints.push(`${comment}
+  ${pathDecorator}
+  @UseGuards(${guards.join(', ')})
+${rolesDecorator}${permissionDecorator}
+  ${controllerMethodName}(${paramDecoratorsStr}) {
+    return this.${serviceVarName}.${methodName}(${paramsStr});
+  }`);
+    });
+
+    return endpoints.length > 0 ? '\n' + endpoints.join('\n') : '';
+  }
+
+  /**
+   * 获取 HTTP 方法装饰器名称
+   */
+  private getMethodDecorator(method: string): string {
+    const decorators: Record<string, string> = {
+      'get': 'Get',
+      'post': 'Post',
+      'put': 'Put',
+      'patch': 'Patch',
+      'delete': 'Delete',
+    };
+    return decorators[method.toLowerCase()] || 'Get';
+  }
+
+  /**
+   * 根据路径和方法生成 Service 方法名称
+   */
+  private generateServiceMethodName(path: string, method: string): string {
+    const cleanPath = path.replace(/:[^/]+/g, '');
+    const parts = cleanPath.split('/').filter(Boolean);
+    const camelPath = parts.map((p, i) => i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)).join('');
+    const prefix = method === 'get' ? 'get' : method === 'post' ? 'create' : 
+                   ['put', 'patch'].includes(method) ? 'update' : method === 'delete' ? 'delete' : '';
+    return `${prefix}${camelPath.charAt(0).toUpperCase()}${camelPath.slice(1)}`;
+  }
+
+  /**
    * 转换为 PascalCase
    */
   private toPascalCase(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  /**
+   * 转换为 camelCase
+   */
+  private toCamelCase(str: string): string {
+    return str.charAt(0).toLowerCase() + str.slice(1);
   }
 
   /**
