@@ -8,9 +8,11 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
-import { UsersModule } from './modules/rbac/users/users.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { OperationLogInterceptor } from './common/interceptors/operation-log.interceptor';
+import { RoleModule } from './modules/rbac/role/role.module';
+import { PermissionModule } from './modules/rbac/permission/permission.module';
+import { UserModule } from './modules/rbac/user/user.module';
 
 @Module({
   imports: [
@@ -30,7 +32,9 @@ import { OperationLogInterceptor } from './common/interceptors/operation-log.int
     PrismaModule,
     AuthModule,
     FilesModule,
-    UsersModule,
+    RoleModule,
+    PermissionModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [

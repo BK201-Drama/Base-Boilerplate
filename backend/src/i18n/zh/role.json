@@ -1,0 +1,5 @@
+{
+  "not_found": "Role 未找到",
+  "deleted_success": "Role 删除成功",
+  "batch_deleted_success": "批量删除 Role 成功"
+}

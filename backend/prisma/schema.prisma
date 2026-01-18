@@ -1,61 +1,15 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+
+enum UserStatusEnum {
+    active
+  inactive
+  banned
 }
 
-// 用户模型
-model User {
-  id        String        @id @default(uuid())
-  username  String        @unique
-  email     String        @unique
-  password  String
-  nickname  String?
-  avatar    String?
-  status    String        @default("active") // active, inactive, banned
-  userRoles UserRole[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  logs      OperationLog[]
-
-  @@map("users")
-}
-
-// 角色模型
-model Role {
-  id          String        @id @default(uuid())
-  name        String        @unique
-  code        String        @unique
-  description String?
-  userRoles   UserRole[]
-  rolePermissions RolePermission[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  @@map("roles")
-}
-
-// 权限模型
-model Permission {
-  id          String            @id @default(uuid())
-  name        String            @unique
-  code        String            @unique
-  resource    String            // 资源名称，如：user, role, permission
-  action      String            // 操作类型，如：create, read, update, delete
-  description String?
-  rolePermissions RolePermission[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-
-  @@map("permissions")
-}
-
-// 用户角色中间表
 model UserRole {
   id     String @id @default(uuid())
   userId String
@@ -67,7 +21,6 @@ model UserRole {
   @@map("user_roles")
 }
 
-// 角色权限中间表
 model RolePermission {
   id           String     @id @default(uuid())
   roleId       String
@@ -79,7 +32,6 @@ model RolePermission {
   @@map("role_permissions")
 }
 
-// 操作日志模型
 model OperationLog {
   id          String   @id @default(uuid())
   userId      String
@@ -97,4 +49,60 @@ model OperationLog {
   @@map("operation_logs")
   @@index([userId])
   @@index([createdAt])
+}
+
+model Permission {
+  id        String   @id @default(uuid())
+  // 权限名称
+  name String @unique
+  // 权限代码
+  code String @unique
+  // 资源名称
+  resource String
+  // 操作类型
+  action String
+  // 权限描述
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("permission")
+}
+
+model Role {
+  id        String   @id @default(uuid())
+  // 角色名称
+  name String @unique
+  // 角色代码
+  code String @unique
+  // 角色描述
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rolePermissions Permission[]
+
+  @@map("role")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  // 用户名
+  username String @unique
+  // 邮箱
+  email String @unique
+  // 密码
+  password String
+  // 昵称
+  nickname String?
+  // 头像URL
+  avatar String?
+  // 用户状态
+  status UserStatusEnum @default(active)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userRoles Role[]
+
+  @@map("user")
 }

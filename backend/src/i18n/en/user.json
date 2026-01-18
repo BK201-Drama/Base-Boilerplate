@@ -1,0 +1,5 @@
+{
+  "not_found": "User not found",
+  "deleted_success": "User deleted successfully",
+  "batch_deleted_success": "Batch deleted User successfully"
+}

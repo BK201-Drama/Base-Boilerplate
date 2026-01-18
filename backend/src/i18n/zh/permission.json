@@ -1,0 +1,5 @@
+{
+  "not_found": "Permission 未找到",
+  "deleted_success": "Permission 删除成功",
+  "batch_deleted_success": "批量删除 Permission 成功"
+}

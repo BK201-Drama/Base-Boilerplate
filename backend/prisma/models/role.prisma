@@ -1,0 +1,16 @@
+// 角色资源（RBAC系统）
+model Role {
+  id        String   @id @default(uuid())
+  // 角色名称
+  name String @unique
+  // 角色代码
+  code String @unique
+  // 角色描述
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rolePermissions Permission[]
+
+  @@map("role")
+}

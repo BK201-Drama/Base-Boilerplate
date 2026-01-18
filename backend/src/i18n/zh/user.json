@@ -1,0 +1,5 @@
+{
+  "not_found": "User 未找到",
+  "deleted_success": "User 删除成功",
+  "batch_deleted_success": "批量删除 User 成功"
+}

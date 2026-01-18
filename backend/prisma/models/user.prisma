@@ -1,0 +1,30 @@
+enum UserStatusEnum {
+    active
+  inactive
+  banned
+}
+
+
+
+// 用户资源（RBAC系统）
+model User {
+  id        String   @id @default(uuid())
+  // 用户名
+  username String @unique
+  // 邮箱
+  email String @unique
+  // 密码
+  password String
+  // 昵称
+  nickname String?
+  // 头像URL
+  avatar String?
+  // 用户状态
+  status UserStatusEnum @default(active)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userRoles Role[]
+
+  @@map("user")
+}

@@ -1,0 +1,5 @@
+{
+  "not_found": "Role not found",
+  "deleted_success": "Role deleted successfully",
+  "batch_deleted_success": "Batch deleted Role successfully"
+}

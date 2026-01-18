@@ -143,14 +143,6 @@ export class Update${className}Dto extends PartialType(${createDtoName}) {}
   }
 
   /**
-   * 生成DTO字段名（如Role -> roleIds）
-   */
-  private generateDtoFieldName(modelName: string): string {
-    const camelCase = this.toCamelCase(modelName);
-    return `${camelCase}Ids`;
-  }
-
-  /**
    * 转换为驼峰命名
    */
   private toCamelCase(str: string): string {

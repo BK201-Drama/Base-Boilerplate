@@ -1,0 +1,5 @@
+{
+  "not_found": "Permission not found",
+  "deleted_success": "Permission deleted successfully",
+  "batch_deleted_success": "Batch deleted Permission successfully"
+}

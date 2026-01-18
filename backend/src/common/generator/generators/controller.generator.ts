@@ -36,7 +36,7 @@ export class ControllerGenerator {
     // 生成导入语句
     const createDtoName = `Create${className}Dto`;
     const updateDtoName = `Update${className}Dto`;
-    const imports = this.generateImports(requireAuth, resource.operations, resource.customEndpoints);
+    const imports = this.generateImports(requireAuth, resource.operations, resource.customEndpoints, resource.relationBindings);
     const serviceVarName = this.toCamelCase(serviceName);
 
     return `${imports}
@@ -79,7 +79,8 @@ ${endpoints}${bindingEndpoints}${customEndpoints}
   private generateImports(
     requireAuth: boolean, 
     operations?: ResourceDefinition['operations'],
-    customEndpoints?: ResourceDefinition['customEndpoints']
+    customEndpoints?: ResourceDefinition['customEndpoints'],
+    relationBindings?: ResourceDefinition['relationBindings']
   ): string {
     const imports = new Set<string>(['Controller']);
     
@@ -88,7 +89,7 @@ ${endpoints}${bindingEndpoints}${customEndpoints}
       imports.add('Body');
     }
     // 检查是否有独立的关系绑定端点需要Post和Delete
-    if (resource.relationBindings?.some(b => b.generateStandaloneEndpoints === true)) {
+    if (relationBindings?.some(b => b.generateStandaloneEndpoints === true)) {
       imports.add('Post');
       imports.add('Delete');
       imports.add('Body');

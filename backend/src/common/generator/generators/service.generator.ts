@@ -36,8 +36,9 @@ export class ServiceGenerator {
     const repositoryInjections = this.generateRepositoryInjections(requiredRepositories);
 
     // 检查是否需要PrismaService（用于关系绑定，特别是多对多关系）
-    const hasRelationBindings = resource.relationBindings && resource.relationBindings.length > 0;
-    const needsPrismaService = hasRelationBindings && resource.relationBindings.some(
+    const relationBindings = resource.relationBindings || [];
+    const hasRelationBindings = relationBindings.length > 0;
+    const needsPrismaService = hasRelationBindings && relationBindings.some(
       b => this.determineRelationType(b) === 'many-to-many'
     );
     const prismaServiceImport = needsPrismaService ? '\nimport { PrismaService } from \'@/prisma/prisma.service\';' : '';
