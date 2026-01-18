@@ -13,20 +13,20 @@ enum UserStatusEnum {
 }
 
 model UserRole {
-  id     String @id @default(uuid())
-  userId String
-  roleId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  id     Int  @id @default(autoincrement())
+  userId Int
+  roleId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roleId])
   @@map("user_roles")
 }
 
 model RolePermission {
-  id           String     @id @default(uuid())
-  roleId       String
-  permissionId String
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
@@ -35,8 +35,8 @@ model RolePermission {
 }
 
 model OperationLog {
-  id          String   @id @default(uuid())
-  userId      String
+  id          Int      @id @default(autoincrement())
+  userId      Int
   user        User     @relation(fields: [userId], references: [id])
   method      String   // HTTP 方法
   path        String   // 请求路径
@@ -54,7 +54,7 @@ model OperationLog {
 }
 
 model Permission {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   // 权限名称
   name String @unique
   // 权限代码
@@ -73,7 +73,7 @@ model Permission {
 }
 
 model Role {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   // 角色名称
   name String @unique
   // 角色代码
@@ -89,7 +89,7 @@ model Role {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   // 用户名
   username String @unique
   // 邮箱

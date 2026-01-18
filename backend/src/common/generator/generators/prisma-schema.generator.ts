@@ -32,7 +32,7 @@ ${fields}
     const fields: string[] = [];
 
     // ID 字段
-    fields.push('  id        String   @id @default(uuid())');
+    fields.push('  id        Int      @id @default(autoincrement())');
 
     // 普通字段
     resource.fields.forEach((field) => {

@@ -66,7 +66,7 @@ export class PermissionController {
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Permissions('permission:read')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.permissionService.findOne(id);
   }
 
@@ -74,7 +74,7 @@ export class PermissionController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('permission:update')
-  update(@Param('id') id: string, @Body() updateDto: UpdatePermissionDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdatePermissionDto) {
     return this.permissionService.update(id, updateDto);
   }
 
@@ -82,7 +82,7 @@ export class PermissionController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('permission:delete')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.permissionService.remove(id);
   }
 
@@ -90,7 +90,7 @@ export class PermissionController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('permission:delete')
-  batchDelete(@Body() body: { ids: string[] }) {
+  batchDelete(@Body() body: { ids: number[] }) {
     return this.permissionService.removeMany(body.ids);
   }
 }

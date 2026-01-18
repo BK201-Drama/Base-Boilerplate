@@ -66,7 +66,7 @@ export class RoleController {
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Permissions('role:read')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.roleService.findOne(id);
   }
 
@@ -74,7 +74,7 @@ export class RoleController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('role:update')
-  update(@Param('id') id: string, @Body() updateDto: UpdateRoleDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateRoleDto) {
     return this.roleService.update(id, updateDto);
   }
 
@@ -82,7 +82,7 @@ export class RoleController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('role:delete')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.roleService.remove(id);
   }
 
@@ -90,7 +90,7 @@ export class RoleController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('role:delete')
-  batchDelete(@Body() body: { ids: string[] }) {
+  batchDelete(@Body() body: { ids: number[] }) {
     return this.roleService.removeMany(body.ids);
   }
 }

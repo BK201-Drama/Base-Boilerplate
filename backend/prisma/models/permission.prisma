@@ -1,6 +1,6 @@
 // 权限资源（RBAC系统）
 model Permission {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   // 权限名称
   name String @unique
   // 权限代码

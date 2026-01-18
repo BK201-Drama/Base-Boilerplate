@@ -91,17 +91,17 @@ export function CrudMethods(): ClassDecorator {
     Permissions(`${resource}:read`)(target.prototype, 'findAll', findAllDescriptor);
 
     // 查询单条方法
-    const findOneMethod = function (this: any, id: string) {
+    const findOneMethod = function (this: any, id: number) {
       return this.service.findOne(id);
     };
     findOneMethod.toString = () => 'findOne';
     
-    // 设置 Param 参数元数据
+    // 设置 Param 参数元数据（添加 ParseIntPipe）
     const paramMetadata = {
       [`${0}:param`]: {
         index: 0,
         data: 'id',
-        pipes: [],
+        pipes: [new ParseIntPipe()],
       },
     };
     Reflect.defineMetadata(ROUTE_ARGS_METADATA, paramMetadata, target.prototype, 'findOne');
@@ -120,17 +120,17 @@ export function CrudMethods(): ClassDecorator {
     Permissions(`${resource}:read`)(target.prototype, 'findOne', findOneDescriptor);
 
     // 更新方法
-    const updateMethod = function (this: any, id: string, dto: any) {
+    const updateMethod = function (this: any, id: number, dto: any) {
       return this.service.update(id, dto);
     };
     updateMethod.toString = () => 'update';
     
-    // 设置 Param 和 Body 参数元数据
+    // 设置 Param 和 Body 参数元数据（添加 ParseIntPipe）
     const updateMetadata = {
       [`${0}:param`]: {
         index: 0,
         data: 'id',
-        pipes: [],
+        pipes: [new ParseIntPipe()],
       },
       [`${1}:body`]: {
         index: 1,
@@ -157,17 +157,17 @@ export function CrudMethods(): ClassDecorator {
     Permissions(`${resource}:update`)(target.prototype, 'update', updateDescriptor);
 
     // 删除方法
-    const removeMethod = function (this: any, id: string) {
+    const removeMethod = function (this: any, id: number) {
       return this.service.remove(id);
     };
     removeMethod.toString = () => 'remove';
     
-    // 设置 Param 参数元数据
+    // 设置 Param 参数元数据（添加 ParseIntPipe）
     const removeMetadata = {
       [`${0}:param`]: {
         index: 0,
         data: 'id',
-        pipes: [],
+        pipes: [new ParseIntPipe()],
       },
     };
     Reflect.defineMetadata(ROUTE_ARGS_METADATA, removeMetadata, target.prototype, 'remove');

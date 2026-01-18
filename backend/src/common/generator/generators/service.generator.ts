@@ -166,7 +166,7 @@ ${joinMethods}${hooks}${relationBindingMethods}${customEndpointMethods}
   /**
    * 根据ID查询（包含关联数据，使用 SQL JOIN）
    */
-  async findOne(id: string, options?: any) {
+  async findOne(id: number, options?: any) {
     return super.findOne(id, {
       ...options,
       include: ${detailIncludeConfig},
@@ -206,7 +206,7 @@ ${joinMethods}${hooks}${relationBindingMethods}${customEndpointMethods}
       : '根据ID查询（包含关联数据，部分使用内存拼接）';
     const methodParams = forList
       ? 'pagination?: { page?: number; limit?: number }, options?: any'
-      : 'id: string, options?: any';
+      : 'id: number, options?: any';
 
     // 生成 SQL JOIN 的 include 配置
     const sqlIncludeConfig = sqlJoins && sqlJoins.length > 0
@@ -507,7 +507,7 @@ ${joinMethods}${hooks}${relationBindingMethods}${customEndpointMethods}
 
     if (resource.hooks?.beforeUpdate) {
       hooks.push(`
-  protected async beforeUpdate(id: string, data: ${updateDtoName}): Promise<any> {
+  protected async beforeUpdate(id: number, data: ${updateDtoName}): Promise<any> {
     // TODO: 实现更新前处理逻辑
     return data;
   }`);
@@ -523,7 +523,7 @@ ${joinMethods}${hooks}${relationBindingMethods}${customEndpointMethods}
 
     if (resource.hooks?.beforeDelete) {
       hooks.push(`
-  protected async beforeDelete(id: string): Promise<void> {
+  protected async beforeDelete(id: number): Promise<void> {
     // TODO: 实现删除前验证逻辑
   }`);
     }
@@ -659,7 +659,7 @@ ${joinMethods}${hooks}${relationBindingMethods}${customEndpointMethods}
   /**
    * 更新记录（包含关系绑定处理）
    */
-  async update(id: string, updateDto: ${updateDtoName}) {
+  async update(id: number, updateDto: ${updateDtoName}) {
     // 分离关系绑定字段和普通字段
     const { ${destructureFields}, ...updateData } = updateDto as any;
 
@@ -694,7 +694,7 @@ ${bindingHandlers}
    * @param id 当前记录ID
    * @param ${dtoFieldName} 关联记录ID数组
    */
-  private async ${methodName}(id: string, ${dtoFieldName}: string[]) {
+  private async ${methodName}(id: number, ${dtoFieldName}: number[]) {
     // 获取当前所有关联记录
     const currentBindings = await this.prisma.${junctionModelVar}.findMany({
       where: {
@@ -742,7 +742,7 @@ ${bindingHandlers}
    * @param id 当前记录ID
    * @param ${dtoFieldName} 关联记录ID
    */
-  private async ${methodName}(id: string, ${dtoFieldName}: string | null) {
+  private async ${methodName}(id: number, ${dtoFieldName}: number | null) {
     // 直接更新外键字段
     await this.repository.update(id, {
       ${foreignKeyField}: ${dtoFieldName} || null,

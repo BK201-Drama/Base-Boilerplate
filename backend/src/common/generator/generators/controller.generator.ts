@@ -193,7 +193,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @Get(':id')
   @UseGuards(${methodGuards})
   @Permissions('${resourceName}:read')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.${serviceVarName}.findOne(id);
   }`);
     }
@@ -204,7 +204,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
-  update(@Param('id') id: string, @Body() updateDto: ${updateDtoName}) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: ${updateDtoName}) {
     return this.${serviceVarName}.update(id, updateDto);
   }`);
     }
@@ -215,7 +215,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @UseGuards(${methodGuards})
   ${deleteRoles.length > 0 ? `@Roles(${deleteRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:delete')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.${serviceVarName}.remove(id);
   }`);
     }
@@ -227,7 +227,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @UseGuards(${methodGuards})
   ${deleteRoles.length > 0 ? `@Roles(${deleteRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:delete')
-  batchDelete(@Body() body: { ids: string[] }) {
+  batchDelete(@Body() body: { ids: number[] }) {
     return this.${serviceVarName}.removeMany(body.ids);
   }`);
     }
@@ -280,7 +280,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
-  ${bindMethodName}(@Param('id') id: string, @Body() body: { ${dtoFieldName}: string[] }) {
+  ${bindMethodName}(@Param('id', ParseIntPipe) id: number, @Body() body: { ${dtoFieldName}: number[] }) {
     return this.${serviceVarName}.update(id, { ${dtoFieldName}: body.${dtoFieldName} } as any);
   }`);
 
@@ -294,7 +294,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
-  ${unbindMethodName}(@Param('id') id: string, @Param('relatedId') relatedId: string) {
+  ${unbindMethodName}(@Param('id', ParseIntPipe) id: number, @Param('relatedId', ParseIntPipe) relatedId: number) {
     // 获取当前绑定，移除指定的关联
     return this.${serviceVarName}.update(id, { ${dtoFieldName}: [] } as any).then(async (result) => {
       // 重新绑定除了被移除的之外的所有关联
@@ -315,7 +315,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
-  ${bindMethodName}(@Param('id') id: string, @Body() body: { ${dtoFieldName}: string | null }) {
+  ${bindMethodName}(@Param('id', ParseIntPipe) id: number, @Body() body: { ${dtoFieldName}: number | null }) {
     return this.${serviceVarName}.update(id, { ${dtoFieldName}: body.${dtoFieldName} } as any);
   }`);
 
@@ -329,7 +329,7 @@ import { Permissions } from '@/common/decorators/permissions.decorator';`;
   @UseGuards(${methodGuards})
   ${updateRoles.length > 0 ? `@Roles(${updateRoles.map(r => `'${r}'`).join(', ')})` : ''}
   @Permissions('${resourceName}:update')
-  ${unbindMethodName}(@Param('id') id: string) {
+  ${unbindMethodName}(@Param('id', ParseIntPipe) id: number) {
     return this.${serviceVarName}.update(id, { ${dtoFieldName}: null } as any);
   }`);
       }

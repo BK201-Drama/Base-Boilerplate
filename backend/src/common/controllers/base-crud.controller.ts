@@ -24,7 +24,7 @@ import { PaginationParams, CrudControllerConfig } from '../types/crud.types';
  * 提供标准的 CRUD 端点
  */
 export function BaseCrudController<
-  TModel extends { id: string },
+  TModel extends { id: number },
   TCreateDto,
   TUpdateDto,
 >(
@@ -78,7 +78,7 @@ export function BaseCrudController<
       PermissionsGuard,
     )
     @Permissions(`${resource}:read`)
-    findOne(@Param('id') id: string) {
+      findOne(@Param('id', ParseIntPipe) id: number) {
       return this.service.findOne(id);
     }
 
@@ -90,7 +90,7 @@ export function BaseCrudController<
     )
     @Roles(...(updateRoles || []))
     @Permissions(`${resource}:update`)
-    update(@Param('id') id: string, @Body() updateDto: TUpdateDto) {
+      update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: TUpdateDto) {
       return this.service.update(id, updateDto);
     }
 
@@ -102,7 +102,7 @@ export function BaseCrudController<
     )
     @Roles(...(deleteRoles || []))
     @Permissions(`${resource}:delete`)
-    remove(@Param('id') id: string) {
+      remove(@Param('id', ParseIntPipe) id: number) {
       return this.service.remove(id);
     }
   }

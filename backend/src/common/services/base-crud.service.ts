@@ -18,7 +18,7 @@ import type { IBaseCrudRepository } from '../repositories/base-crud.repository';
  */
 @Injectable()
 export abstract class BaseCrudService<
-  TModel extends { id: string },
+  TModel extends { id: number },
   TCreateDto,
   TUpdateDto,
   TModelName extends string,
@@ -49,7 +49,7 @@ export abstract class BaseCrudService<
   /**
    * 更新前处理
    */
-  protected async beforeUpdate(id: string, data: TUpdateDto): Promise<any> {
+  protected async beforeUpdate(id: number, data: TUpdateDto): Promise<any> {
     return data;
   }
 
@@ -63,7 +63,7 @@ export abstract class BaseCrudService<
   /**
    * 删除前处理
    */
-  protected async beforeDelete(id: string): Promise<void> {
+  protected async beforeDelete(id: number): Promise<void> {
     // 可以在这里添加删除前的验证逻辑
   }
 
@@ -100,7 +100,7 @@ export abstract class BaseCrudService<
    * 根据 ID 查询单条记录
    */
   async findOne(
-    id: string,
+    id: number,
     options?: {
       select?: any;
       include?: any;
@@ -132,7 +132,7 @@ export abstract class BaseCrudService<
    * 更新记录
    */
   async update(
-    id: string,
+    id: number,
     updateDto: TUpdateDto,
     options?: UpdateOptions<TModel>,
   ): Promise<TModel> {
@@ -147,7 +147,7 @@ export abstract class BaseCrudService<
   /**
    * 删除记录
    */
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: number): Promise<{ message: string }> {
     await this.beforeDelete(id);
     await this.findOne(id); // 确保记录存在
     await this.repository.delete(id);
@@ -160,7 +160,7 @@ export abstract class BaseCrudService<
   /**
    * 批量删除
    */
-  async removeMany(ids: string[]): Promise<{ message: string; count: number }> {
+  async removeMany(ids: number[]): Promise<{ message: string; count: number }> {
     const count = await this.repository.deleteMany(ids);
 
     return {
@@ -179,7 +179,7 @@ export abstract class BaseCrudService<
   /**
    * 检查记录是否存在
    */
-  async exists(id: string): Promise<boolean> {
+  async exists(id: number): Promise<boolean> {
     return this.repository.exists(id);
   }
 
@@ -202,7 +202,7 @@ export abstract class BaseCrudService<
    * 批量更新
    */
   async updateMany(
-    ids: string[],
+    ids: number[],
     data: TUpdateDto,
     options?: UpdateOptions<TModel>,
   ): Promise<{ count: number }> {

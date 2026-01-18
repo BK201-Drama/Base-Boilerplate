@@ -1,6 +1,6 @@
 // 角色资源（RBAC系统）
 model Role {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   // 角色名称
   name String @unique
   // 角色代码

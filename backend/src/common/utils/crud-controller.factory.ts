@@ -45,7 +45,7 @@ export function createCrudController(config: CrudControllerConfig) {
   const routePath = path || `${resource}s`;
 
   return function <
-    TModel extends { id: string },
+    TModel extends { id: number },
     TCreateDto,
     TUpdateDto,
     TService extends BaseCrudService<TModel, TCreateDto, TUpdateDto, any> = BaseCrudService<TModel, TCreateDto, TUpdateDto, any>,
@@ -87,7 +87,7 @@ export function createCrudController(config: CrudControllerConfig) {
         PermissionsGuard,
       )
       @Permissions(`${resource}:read`)
-      findOne(@Param('id') id: string) {
+      findOne(@Param('id', ParseIntPipe) id: number) {
         return this.service.findOne(id);
       }
 
@@ -99,7 +99,7 @@ export function createCrudController(config: CrudControllerConfig) {
       )
       @Roles(...updateRoles)
       @Permissions(`${resource}:update`)
-      update(@Param('id') id: string, @Body() updateDto: TUpdateDto) {
+      update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: TUpdateDto) {
         return this.service.update(id, updateDto);
       }
 
@@ -111,7 +111,7 @@ export function createCrudController(config: CrudControllerConfig) {
       )
       @Roles(...deleteRoles)
       @Permissions(`${resource}:delete`)
-      remove(@Param('id') id: string) {
+      remove(@Param('id', ParseIntPipe) id: number) {
         return this.service.remove(id);
       }
     }

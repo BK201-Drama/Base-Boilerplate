@@ -15,7 +15,7 @@ import {
  * 基础 CRUD Repository 接口
  */
 export interface IBaseCrudRepository<
-  TModel extends { id: string },
+  TModel extends { id: number },
   TCreateData,
   TUpdateData,
 > {
@@ -41,7 +41,7 @@ export interface IBaseCrudRepository<
    * 根据 ID 查询单条记录
    */
   findOne(
-    id: string,
+    id: number,
     options?: {
       select?: any;
       include?: any;
@@ -57,7 +57,7 @@ export interface IBaseCrudRepository<
    * 更新记录
    */
   update(
-    id: string,
+    id: number,
     data: TUpdateData,
     options?: UpdateOptions<TModel>,
   ): Promise<TModel>;
@@ -65,12 +65,12 @@ export interface IBaseCrudRepository<
   /**
    * 删除记录
    */
-  delete(id: string): Promise<void>;
+  delete(id: number): Promise<void>;
 
   /**
    * 批量删除
    */
-  deleteMany(ids: string[]): Promise<number>;
+  deleteMany(ids: number[]): Promise<number>;
 
   /**
    * 统计数量
@@ -80,7 +80,7 @@ export interface IBaseCrudRepository<
   /**
    * 检查记录是否存在
    */
-  exists(id: string): Promise<boolean>;
+  exists(id: number): Promise<boolean>;
 
   /**
    * 批量创建
@@ -94,7 +94,7 @@ export interface IBaseCrudRepository<
    * 批量更新
    */
   updateMany(
-    ids: string[],
+    ids: number[],
     data: TUpdateData,
     options?: UpdateOptions<TModel>,
   ): Promise<number>;
@@ -103,7 +103,7 @@ export interface IBaseCrudRepository<
    * 根据多个 ID 查询记录（细粒度方法）
    */
   findByIds(
-    ids: string[],
+    ids: number[],
     options?: {
       select?: any;
       include?: any;
@@ -130,7 +130,7 @@ export interface IBaseCrudRepository<
  * 提供基于 Prisma 的默认实现
  */
 export abstract class BaseCrudRepository<
-  TModel extends { id: string },
+  TModel extends { id: number },
   TCreateData,
   TUpdateData,
 > implements IBaseCrudRepository<TModel, TCreateData, TUpdateData>
@@ -212,7 +212,7 @@ export abstract class BaseCrudRepository<
    * 根据 ID 查询单条记录
    */
   async findOne(
-    id: string,
+    id: number,
     options?: {
       select?: any;
       include?: any;
@@ -247,7 +247,7 @@ export abstract class BaseCrudRepository<
    * 更新记录
    */
   async update(
-    id: string,
+    id: number,
     data: TUpdateData,
     options?: UpdateOptions<TModel>,
   ): Promise<TModel> {
@@ -264,7 +264,7 @@ export abstract class BaseCrudRepository<
   /**
    * 删除记录
    */
-  async delete(id: string): Promise<void> {
+  async delete(id: number): Promise<void> {
     const model = this.getModelDelegate();
     await model.delete({
       where: { id },
@@ -274,7 +274,7 @@ export abstract class BaseCrudRepository<
   /**
    * 批量删除
    */
-  async deleteMany(ids: string[]): Promise<number> {
+  async deleteMany(ids: number[]): Promise<number> {
     const model = this.getModelDelegate();
 
     const result = await model.deleteMany({
@@ -299,7 +299,7 @@ export abstract class BaseCrudRepository<
   /**
    * 检查记录是否存在
    */
-  async exists(id: string): Promise<boolean> {
+  async exists(id: number): Promise<boolean> {
     const model = this.getModelDelegate();
     const count = await model.count({
       where: { id },
@@ -328,7 +328,7 @@ export abstract class BaseCrudRepository<
    * 批量更新
    */
   async updateMany(
-    ids: string[],
+    ids: number[],
     data: TUpdateData,
     options?: UpdateOptions<TModel>,
   ): Promise<number> {
@@ -350,7 +350,7 @@ export abstract class BaseCrudRepository<
    * 根据多个 ID 查询记录（细粒度方法）
    */
   async findByIds(
-    ids: string[],
+    ids: number[],
     options?: {
       select?: any;
       include?: any;

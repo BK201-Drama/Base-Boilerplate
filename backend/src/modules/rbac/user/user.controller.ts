@@ -66,7 +66,7 @@ export class UserController {
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Permissions('user:read')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findOne(id);
   }
 
@@ -74,7 +74,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('user:update')
-  update(@Param('id') id: string, @Body() updateDto: UpdateUserDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateUserDto) {
     return this.userService.update(id, updateDto);
   }
 
@@ -82,7 +82,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('user:delete')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.userService.remove(id);
   }
 
@@ -90,7 +90,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles('admin')
   @Permissions('user:delete')
-  batchDelete(@Body() body: { ids: string[] }) {
+  batchDelete(@Body() body: { ids: number[] }) {
     return this.userService.removeMany(body.ids);
   }
 }
