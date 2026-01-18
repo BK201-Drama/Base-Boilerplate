@@ -3,6 +3,8 @@ generator client {
 }
 
 datasource db {
+  provider = "postgresql"
+}
 
 enum UserStatusEnum {
     active
@@ -65,8 +67,9 @@ model Permission {
   description String? @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  rolePermissions RolePermission[]
 
-  @@map("permission")
+  @@map("permissions")
 }
 
 model Role {
@@ -79,10 +82,10 @@ model Role {
   description String? @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userRoles UserRole[]
+  rolePermissions RolePermission[]
 
-  rolePermissions Permission[]
-
-  @@map("role")
+  @@map("roles")
 }
 
 model User {
@@ -101,8 +104,8 @@ model User {
   status UserStatusEnum @default(active)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userRoles UserRole[]
+  logs      OperationLog[]
 
-  userRoles Role[]
-
-  @@map("user")
+  @@map("users")
 }

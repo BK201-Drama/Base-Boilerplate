@@ -72,7 +72,7 @@ export function BaseCrudController<
   @Controller()
   class CrudController {
     constructor(
-      protected readonly service: BaseCrudService<TModel, TCreateDto, TUpdateDto, any>,
+      public readonly service: BaseCrudService<TModel, TCreateDto, TUpdateDto, any>,
     ) {}
 
     @Post()
