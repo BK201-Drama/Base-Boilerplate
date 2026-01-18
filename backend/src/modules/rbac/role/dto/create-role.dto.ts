@@ -9,6 +9,7 @@ export class CreateRoleDto {
   @IsString()
   code: string;
 
+  @IsOptional()
   @IsString()
   description?: string;
 }

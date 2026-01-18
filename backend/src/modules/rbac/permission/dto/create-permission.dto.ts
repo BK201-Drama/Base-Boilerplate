@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class CreatePermissionDto {
   @IsNotEmpty({ message: 'validation.name_required' })
@@ -19,4 +19,12 @@ export class CreatePermissionDto {
 
   @IsString()
   description?: string;
+
+  @IsNotEmpty({ message: 'validation.Text_required' })
+  @IsString()
+  Text: string;
+
+  @IsNotEmpty({ message: 'validation.updatedAt_required' })
+  @IsDateString()
+  updatedAt: string;
 }

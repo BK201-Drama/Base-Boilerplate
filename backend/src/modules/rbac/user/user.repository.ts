@@ -4,7 +4,7 @@ import { BaseCrudRepository } from '@/common/repositories/base-crud.repository';
 import { User } from '@prisma/client';
 
 /**
- * 用户资源（RBAC系统）
+ * User Repository
  * 
  * 数据访问层，负责与数据库交互，提供细粒度的 ORM 操作方法。
  * 
@@ -52,8 +52,11 @@ export class UserRepository extends BaseCrudRepository<
   "username": true,
   "email": true,
   "nickname": true,
-  "avatar": true,
-  "status": true
+  "URL": true,
+  "status": true,
+  "roles": true,
+  "operationLogs": true,
+  "updatedAt": true
 } as const;
 
   constructor(private readonly prisma: PrismaService) {
@@ -64,4 +67,7 @@ export class UserRepository extends BaseCrudRepository<
     return this.prisma.user;
   }
 
+  async updateStatus(id: number, status: string): Promise<User> {
+    return this.update(id, { status } as any);
+  }
 }

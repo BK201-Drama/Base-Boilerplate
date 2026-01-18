@@ -92,28 +92,11 @@ export class UserService extends BaseCrudService<
     }
     return data;
   }
-  /**
-   * 更新记录（包含关系绑定处理）
-   */
-  async update(id: number, updateDto: UpdateUserDto) {
-    // 分离关系绑定字段和普通字段
-    const { roleIds, ...updateData } = updateDto as any;
-
-    // 先执行基础更新
-    const result = await super.update(id, updateData as UpdateUserDto);
-
-    // 处理关系绑定
-    if (roleIds !== undefined) {
-      await this.handleUserRolesBinding(id, roleIds);
-    }
-
-    return result;
-  }
 
   /**
-   * 处理用户角色绑定（多对多关系）
-   * @param id 当前记录ID
-   * @param roleIds 关联记录ID数组
+   * 绑定用户角色关系
+   * @param id 用户ID
+   * @param roleIds 角色ID数组
    */
   private async handleUserRolesBinding(id: number, roleIds: number[]) {
     // 获取当前所有关联记录
@@ -123,21 +106,19 @@ export class UserService extends BaseCrudService<
       },
     });
 
-    const currentIds = currentBindings.map(b => b.roleId);
+    const currentIds = currentBindings.map((b) => b.roleId);
     const newIds = roleIds || [];
-    
-    // 计算需要添加和删除的关联
-    const toAdd = newIds.filter(id => !currentIds.includes(id));
-    const toRemove = currentIds.filter(id => !newIds.includes(id));
+
+    // 计算需要删除和添加的ID
+    const toDelete = currentIds.filter((id) => !newIds.includes(id));
+    const toAdd = newIds.filter((id) => !currentIds.includes(id));
 
     // 删除不再需要的关联
-    if (toRemove.length > 0) {
+    if (toDelete.length > 0) {
       await this.prisma.userRole.deleteMany({
         where: {
           userId: id,
-          roleId: {
-            in: toRemove,
-          },
+          roleId: { in: toDelete },
         },
       });
     }
@@ -145,12 +126,30 @@ export class UserService extends BaseCrudService<
     // 添加新的关联
     if (toAdd.length > 0) {
       await this.prisma.userRole.createMany({
-        data: toAdd.map(roleId => ({
+        data: toAdd.map((roleId) => ({
           userId: id,
           roleId,
         })),
         skipDuplicates: true,
       });
     }
+  }
+
+  /**
+   * 更新用户（包含角色绑定）
+   */
+  async update(id: number, updateDto: UpdateUserDto): Promise<User> {
+    const { roleIds, ...updateData } = updateDto as any;
+
+    // 先更新基本数据
+    const updated = await super.update(id, updateData as UpdateUserDto);
+
+    // 处理角色绑定
+    if (roleIds !== undefined) {
+      await this.handleUserRolesBinding(id, roleIds);
+    }
+
+    // 返回更新后的完整数据（包含关联）
+    return this.findOne(id);
   }
 }

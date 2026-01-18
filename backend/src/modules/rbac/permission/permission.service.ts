@@ -30,13 +30,4 @@ export class PermissionService extends BaseCrudService<
     super(repository, i18n);
   }
 
-  protected async beforeCreate(data: CreatePermissionDto): Promise<any> {
-    // TODO: 实现创建前处理逻辑
-    return data;
-  }
-
-  protected async beforeUpdate(id: number, data: UpdatePermissionDto): Promise<any> {
-    // TODO: 实现更新前处理逻辑
-    return data;
-  }
 }

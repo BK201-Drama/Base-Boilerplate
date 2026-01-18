@@ -21,7 +21,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 /**
- * 用户资源（RBAC系统）
+ * User CRUD Controller
  *
  * 自动生成的 CRUD 控制器，提供以下端点：
  * - POST /users - 创建
@@ -46,15 +46,15 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('user:create')
   create(@Body() createDto: CreateUserDto) {
     return this.userService.create(createDto);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @UseGuards(RolesGuard, PermissionsGuard)
   @Permissions('user:read')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -64,33 +64,25 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @UseGuards(RolesGuard, PermissionsGuard)
   @Permissions('user:read')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findOne(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('user:update')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateUserDto) {
     return this.userService.update(id, updateDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('user:delete')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.userService.remove(id);
-  }
-
-  @Delete('batch')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
-  @Permissions('user:delete')
-  batchDelete(@Body() body: { ids: number[] }) {
-    return this.userService.removeMany(body.ids);
   }
 }

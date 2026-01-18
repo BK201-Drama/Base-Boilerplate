@@ -13,13 +13,13 @@ enum UserStatusEnum {
 }
 
 model RolePermission {
-  id           Int        @id @default(autoincrement())
+  id     Int  @id @default(autoincrement())
   permissionId Int
-  roleId       Int
+  roleId Int
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
   @@unique([permissionId, roleId])
+
   @@map("role_permissions")
 }
 
@@ -29,74 +29,9 @@ model UserRole {
   roleId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
   @@unique([userId, roleId])
+
   @@map("user_roles")
-}
-
-// 权限资源（RBAC系统）
-model Permission {
-  id              Int              @id @default(autoincrement())
-  // 权限名称
-  name            String           @unique
-  // 权限代码
-  code            String           @unique
-  // 资源名称
-  resource        String
-  // 操作类型
-  action          String
-  // 权限描述
-  description     String?          @db.Text
-  roles           Role[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  rolePermissions RolePermission[]
-
-  @@map("permissions")
-}
-
-// 角色资源（RBAC系统）
-model Role {
-  id              Int              @id @default(autoincrement())
-  // 角色名称
-  name            String           @unique
-  // 角色代码
-  code            String           @unique
-  // 角色描述
-  description     String?          @db.Text
-  permissions     Permission[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  rolePermissions RolePermission[]
-  userRoles       UserRole[]
-  user            User?            @relation(fields: [userId], references: [id])
-  userId          Int?
-
-  @@map("roles")
-}
-
-// 用户资源（RBAC系统）
-model User {
-  id            Int            @id @default(autoincrement())
-  // 用户名
-  username      String         @unique
-  // 邮箱
-  email         String         @unique
-  // 密码
-  password      String
-  // 昵称
-  nickname      String?
-  // 头像URL
-  avatar        String?
-  // 用户状态
-  status        UserStatusEnum @default(active)
-  roles         Role[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  userRoles     UserRole[]
-  operationLogs OperationLog[]
-
-  @@map("users")
 }
 
 model OperationLog {
@@ -116,4 +51,61 @@ model OperationLog {
   @@index([userId])
   @@index([createdAt])
   @@map("operation_logs")
+}
+
+model Permission {
+  id        Int      @id @default(autoincrement())
+  // 权限名称
+  name String @unique
+  // 权限代码
+  code String @unique
+  // 资源名称
+  resource String
+  // 操作类型
+  action String
+  // 权限描述
+  description String? @db.Text
+  rolePermissions RolePermission[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("permissions")
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  // 角色名称
+  name String @unique
+  // 角色代码
+  code String @unique
+  // 角色描述
+  description String? @db.Text
+  rolePermissions RolePermission[]
+  userRoles UserRole[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("roles")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  // 用户名
+  username String @unique
+  // 邮箱
+  email String @unique
+  // 密码
+  password String
+  // 昵称
+  nickname String?
+  // 头像URL
+  avatar String?
+  // 用户状态
+  status UserStatusEnum @default(active)
+  userRoles UserRole[]
+  operationLogs OperationLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
 }

@@ -21,7 +21,7 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 
 /**
- * 权限资源（RBAC系统）
+ * Permission CRUD Controller
  *
  * 自动生成的 CRUD 控制器，提供以下端点：
  * - POST /permissions - 创建
@@ -46,15 +46,15 @@ export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('permission:create')
   create(@Body() createDto: CreatePermissionDto) {
     return this.permissionService.create(createDto);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @UseGuards(RolesGuard, PermissionsGuard)
   @Permissions('permission:read')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -64,33 +64,25 @@ export class PermissionController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @UseGuards(RolesGuard, PermissionsGuard)
   @Permissions('permission:read')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.permissionService.findOne(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('permission:update')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdatePermissionDto) {
     return this.permissionService.update(id, updateDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('permission:delete')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.permissionService.remove(id);
-  }
-
-  @Delete('batch')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
-  @Permissions('permission:delete')
-  batchDelete(@Body() body: { ids: number[] }) {
-    return this.permissionService.removeMany(body.ids);
   }
 }

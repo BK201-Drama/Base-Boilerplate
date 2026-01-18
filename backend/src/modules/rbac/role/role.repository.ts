@@ -4,7 +4,7 @@ import { BaseCrudRepository } from '@/common/repositories/base-crud.repository';
 import { Role } from '@prisma/client';
 
 /**
- * 角色资源（RBAC系统）
+ * Role Repository
  * 
  * 数据访问层，负责与数据库交互，提供细粒度的 ORM 操作方法。
  * 
@@ -50,7 +50,10 @@ export class RoleRepository extends BaseCrudRepository<
   protected readonly defaultSelect = {
   "id": true,
   "name": true,
-  "code": true
+  "code": true,
+  "description": true,
+  "Text": true,
+  "updatedAt": true
 } as const;
 
   constructor(private readonly prisma: PrismaService) {

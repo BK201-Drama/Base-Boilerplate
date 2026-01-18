@@ -4,7 +4,7 @@ import { BaseCrudRepository } from '@/common/repositories/base-crud.repository';
 import { Permission } from '@prisma/client';
 
 /**
- * 权限资源（RBAC系统）
+ * Permission Repository
  * 
  * 数据访问层，负责与数据库交互，提供细粒度的 ORM 操作方法。
  * 
@@ -52,7 +52,10 @@ export class PermissionRepository extends BaseCrudRepository<
   "name": true,
   "code": true,
   "resource": true,
-  "action": true
+  "action": true,
+  "description": true,
+  "Text": true,
+  "updatedAt": true
 } as const;
 
   constructor(private readonly prisma: PrismaService) {

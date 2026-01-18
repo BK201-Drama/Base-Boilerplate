@@ -21,7 +21,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
 /**
- * 角色资源（RBAC系统）
+ * Role CRUD Controller
  *
  * 自动生成的 CRUD 控制器，提供以下端点：
  * - POST /roles - 创建
@@ -46,15 +46,15 @@ export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('role:create')
   create(@Body() createDto: CreateRoleDto) {
     return this.roleService.create(createDto);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @UseGuards(RolesGuard, PermissionsGuard)
   @Permissions('role:read')
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -64,33 +64,25 @@ export class RoleController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @UseGuards(RolesGuard, PermissionsGuard)
   @Permissions('role:read')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.roleService.findOne(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('role:update')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateRoleDto) {
     return this.roleService.update(id, updateDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
+  @UseGuards(RolesGuard, PermissionsGuard)
+  
   @Permissions('role:delete')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.roleService.remove(id);
-  }
-
-  @Delete('batch')
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles('admin')
-  @Permissions('role:delete')
-  batchDelete(@Body() body: { ids: number[] }) {
-    return this.roleService.removeMany(body.ids);
   }
 }

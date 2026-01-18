@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsString, IsEmail, IsOptional, IsIn } from 'class-validator';
+import { IsNotEmpty, IsString, IsEmail, IsOptional, IsDateString } from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'validation.username_required' })
   @IsString()
   username: string;
 
-  @IsNotEmpty({ message: 'validation.email_invalid' })
+  @IsNotEmpty({ message: 'validation.email_required' })
   @IsString()
   @IsEmail({}, { message: 'validation.email_invalid' })
   email: string;
@@ -14,16 +14,25 @@ export class CreateUserDto {
   @IsString()
   password: string;
 
-  @IsOptional()
   @IsString()
   nickname?: string;
 
-  @IsOptional()
   @IsString()
-  avatar?: string;
+  URL?: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'validation.status_required' })
   @IsString()
-  @IsIn(['active', 'inactive', 'banned'], { message: 'validation.status_invalid' })
-  status?: string;
+  status: string;
+
+  @IsNotEmpty({ message: 'validation.roles_required' })
+  @IsString()
+  roles: string;
+
+  @IsNotEmpty({ message: 'validation.operationLogs_required' })
+  @IsString()
+  operationLogs: string;
+
+  @IsNotEmpty({ message: 'validation.updatedAt_required' })
+  @IsDateString()
+  updatedAt: string;
 }
