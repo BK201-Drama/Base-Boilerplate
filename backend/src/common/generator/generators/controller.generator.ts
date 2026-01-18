@@ -120,13 +120,13 @@ ${endpoints}${customEndpoints}
     let importStr = `import {\n  ${Array.from(imports).join(',\n  ')},\n} from '@nestjs/common';`;
     
     if (requireAuth || (customEndpoints && customEndpoints.some(e => e.requireAuth !== false))) {
-      importStr += `\nimport { JwtAuthGuard } from '../../auth/jwt-auth.guard';`;
+      importStr += `\nimport { JwtAuthGuard } from '@/auth/jwt-auth.guard';`;
     }
     
-    importStr += `\nimport { RolesGuard } from '../common/guards/roles.guard';
-import { PermissionsGuard } from '../common/guards/permissions.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { Permissions } from '../common/decorators/permissions.decorator';`;
+    importStr += `\nimport { RolesGuard } from '@/common/guards/roles.guard';
+import { PermissionsGuard } from '@/common/guards/permissions.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
+import { Permissions } from '@/common/decorators/permissions.decorator';`;
     
     return importStr;
   }
@@ -262,7 +262,8 @@ import { Permissions } from '../common/decorators/permissions.decorator';`;
       if (endpoint.params?.query && endpoint.params.query.length > 0) {
         const queryParams = endpoint.params.query.map(q => {
           const optional = q.required ? '' : '?';
-          return `${q.name}${optional}: ${q.type}`;
+          const tsType = this.mapTypeToTypeScript(q.type);
+          return `${q.name}${optional}: ${tsType}`;
         }).join(', ');
         paramDecorators.push(`@Query() query: { ${queryParams} }`);
         params.push(`query`);
@@ -296,12 +297,19 @@ import { Permissions } from '../common/decorators/permissions.decorator';`;
         : '';
 
       const controllerMethodName = this.toCamelCase(methodName);
+      // 生成方法调用参数（只传变量名，不传类型）
+      const callParams = params.map(p => {
+        // 提取变量名（去掉类型声明）
+        const match = p.match(/^(\w+)(?::|$)/);
+        return match ? match[1] : p;
+      }).join(', ');
+      
       endpoints.push(`${comment}
   ${pathDecorator}
   @UseGuards(${guards.join(', ')})
 ${rolesDecorator}${permissionDecorator}
   ${controllerMethodName}(${paramDecoratorsStr}) {
-    return this.${serviceVarName}.${methodName}(${paramsStr});
+    return this.${serviceVarName}.${methodName}(${callParams});
   }`);
     });
 
@@ -328,10 +336,29 @@ ${rolesDecorator}${permissionDecorator}
   private generateServiceMethodName(path: string, method: string): string {
     const cleanPath = path.replace(/:[^/]+/g, '');
     const parts = cleanPath.split('/').filter(Boolean);
-    const camelPath = parts.map((p, i) => i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)).join('');
+    // 将连字符转换为驼峰命名
+    const camelPath = parts.map((p, i) => {
+      const camel = p.split('-').map((word, idx) => 
+        idx === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+      ).join('');
+      return i === 0 ? camel : camel.charAt(0).toUpperCase() + camel.slice(1);
+    }).join('');
     const prefix = method === 'get' ? 'get' : method === 'post' ? 'create' : 
                    ['put', 'patch'].includes(method) ? 'update' : method === 'delete' ? 'delete' : '';
     return `${prefix}${camelPath.charAt(0).toUpperCase()}${camelPath.slice(1)}`;
+  }
+
+  /**
+   * 映射类型到 TypeScript 类型
+   */
+  private mapTypeToTypeScript(type: string): string {
+    const typeMap: Record<string, string> = {
+      'string': 'string',
+      'number': 'number',
+      'boolean': 'boolean',
+      'date': 'Date',
+    };
+    return typeMap[type] || 'any';
   }
 
   /**

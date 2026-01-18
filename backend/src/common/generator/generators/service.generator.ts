@@ -37,7 +37,7 @@ export class ServiceGenerator {
 
     return `import { Injectable } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
-import { BaseCrudService } from '../../common/services/base-crud.service';
+import { BaseCrudService } from '@/common/services/base-crud.service';
 import { ${className}Repository } from './${resource.name}.repository';${repositoryImports}
 import { ${createDtoName} } from './dto/create-${resource.name}.dto';
 import { ${updateDtoName} } from './dto/update-${resource.name}.dto';
@@ -281,7 +281,7 @@ ${joinMethods}${hooks}${customEndpointMethods}
     return repositoryModels.map(model => {
       const repositoryName = `${model}Repository`;
       const resourceName = this.toCamelCase(model);
-      return `\nimport { ${repositoryName} } from '../${resourceName}/${resourceName}.repository';`;
+      return `\nimport { ${repositoryName} } from '@/${resourceName}/${resourceName}.repository';`;
     }).join('');
   }
 
@@ -537,7 +537,8 @@ ${joinMethods}${hooks}${customEndpointMethods}
       // 路径参数
       if (endpoint.params?.path) {
         endpoint.params.path.forEach(param => {
-          params.push(`${param}: string`);
+          const paramName = param.replace(':', '');
+          params.push(`${paramName}: string`);
         });
       }
       
@@ -545,7 +546,8 @@ ${joinMethods}${hooks}${customEndpointMethods}
       if (endpoint.params?.query && endpoint.params.query.length > 0) {
         const queryParams = endpoint.params.query.map(q => {
           const optional = q.required ? '' : '?';
-          return `${q.name}${optional}: ${q.type}`;
+          const tsType = this.mapTypeToTypeScript(q.type);
+          return `${q.name}${optional}: ${tsType}`;
         }).join(', ');
         params.push(`query: { ${queryParams} }`);
       }
@@ -577,10 +579,29 @@ ${joinMethods}${hooks}${customEndpointMethods}
   private generateServiceMethodName(path: string, method: string): string {
     const cleanPath = path.replace(/:[^/]+/g, '');
     const parts = cleanPath.split('/').filter(Boolean);
-    const camelPath = parts.map((p, i) => i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)).join('');
+    // 将连字符转换为驼峰命名
+    const camelPath = parts.map((p, i) => {
+      const camel = p.split('-').map((word, idx) => 
+        idx === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
+      ).join('');
+      return i === 0 ? camel : camel.charAt(0).toUpperCase() + camel.slice(1);
+    }).join('');
     const prefix = method === 'get' ? 'get' : method === 'post' ? 'create' : 
                    ['put', 'patch'].includes(method) ? 'update' : method === 'delete' ? 'delete' : '';
     return `${prefix}${camelPath.charAt(0).toUpperCase()}${camelPath.slice(1)}`;
+  }
+
+  /**
+   * 映射类型到 TypeScript 类型
+   */
+  private mapTypeToTypeScript(type: string): string {
+    const typeMap: Record<string, string> = {
+      'string': 'string',
+      'number': 'number',
+      'boolean': 'boolean',
+      'date': 'Date',
+    };
+    return typeMap[type] || 'any';
   }
 
   /**

@@ -84,9 +84,13 @@ export class Update${className}Dto extends PartialType(${createDtoName}) {}
           `  @IsEmail({}, { message: '${validation.message || 'validation.email_invalid'}' })`,
         );
       } else if (validation.type === 'min') {
-        decorators.push(`  @Min(${validation.value})`);
+        decorators.push(`  @Min(${validation.value}, { message: '${validation.message || `validation.${field.name}_min`}' })`);
       } else if (validation.type === 'max') {
-        decorators.push(`  @Max(${validation.value})`);
+        decorators.push(`  @Max(${validation.value}, { message: '${validation.message || `validation.${field.name}_max`}' })`);
+      } else if (validation.type === 'pattern') {
+        decorators.push(
+          `  @Matches(/${validation.value}/, { message: '${validation.message || `validation.${field.name}_format`}' })`,
+        );
       }
     });
 
@@ -133,6 +137,8 @@ export class Update${className}Dto extends PartialType(${createDtoName}) {}
           imports.add('Min');
         } else if (validation.type === 'max') {
           imports.add('Max');
+        } else if (validation.type === 'pattern') {
+          imports.add('Matches');
         }
       });
     });
