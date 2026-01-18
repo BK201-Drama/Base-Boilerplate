@@ -2,11 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { BaseCrudService } from '@/common/services/base-crud.service';
 import { UserRepository } from './user.repository';
-import { PrismaService } from '@/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService extends BaseCrudService<
@@ -18,138 +16,14 @@ export class UserService extends BaseCrudService<
   protected readonly modelName = 'users' as const;
   protected readonly defaultPageSize = 10;
   protected readonly defaultSelect = {
-  "id": true,
-  "username": true,
-  "email": true,
-  "nickname": true,
-  "avatar": true,
-  "status": true
+  "id": true
 } as const;
 
   constructor(
     repository: UserRepository,
-    i18n: I18nService,
-    private readonly prisma: PrismaService
+    i18n: I18nService
   ) {
     super(repository, i18n);
   }
 
-  /**
-   * 分页查询（包含关联数据，使用 SQL JOIN）
-   */
-  async findAll(pagination?: { page?: number; limit?: number }, options?: any) {
-    return super.findAll(pagination, {
-      ...options,
-      include: {
-      userRoles: {
-        include: {
-          role: {
-            select: {
-              id: true,
-              name: true,
-              code: true
-            }
-          }
-        }
-      }
-    },
-    });
-  }
-
-  /**
-   * 根据ID查询（包含关联数据，使用 SQL JOIN）
-   */
-  async findOne(id: number, options?: any) {
-    return super.findOne(id, {
-      ...options,
-      include: {
-      userRoles: {
-        include: {
-          role: {
-            select: {
-              id: true,
-              name: true,
-              code: true
-            }
-          }
-        }
-      }
-    },
-    });
-  }
-  protected async beforeCreate(data: CreateUserDto): Promise<any> {
-    // 对密码进行加密
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
-    return data;
-  }
-
-  protected async beforeUpdate(id: number, data: UpdateUserDto): Promise<any> {
-    // 如果更新密码，对密码进行加密
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
-    return data;
-  }
-
-  /**
-   * 绑定用户角色关系
-   * @param id 用户ID
-   * @param roleIds 角色ID数组
-   */
-  private async handleUserRolesBinding(id: number, roleIds: number[]) {
-    // 获取当前所有关联记录
-    const currentBindings = await this.prisma.userRole.findMany({
-      where: {
-        userId: id,
-      },
-    });
-
-    const currentIds = currentBindings.map((b) => b.roleId);
-    const newIds = roleIds || [];
-
-    // 计算需要删除和添加的ID
-    const toDelete = currentIds.filter((id) => !newIds.includes(id));
-    const toAdd = newIds.filter((id) => !currentIds.includes(id));
-
-    // 删除不再需要的关联
-    if (toDelete.length > 0) {
-      await this.prisma.userRole.deleteMany({
-        where: {
-          userId: id,
-          roleId: { in: toDelete },
-        },
-      });
-    }
-
-    // 添加新的关联
-    if (toAdd.length > 0) {
-      await this.prisma.userRole.createMany({
-        data: toAdd.map((roleId) => ({
-          userId: id,
-          roleId,
-        })),
-        skipDuplicates: true,
-      });
-    }
-  }
-
-  /**
-   * 更新用户（包含角色绑定）
-   */
-  async update(id: number, updateDto: UpdateUserDto): Promise<User> {
-    const { roleIds, ...updateData } = updateDto as any;
-
-    // 先更新基本数据
-    const updated = await super.update(id, updateData as UpdateUserDto);
-
-    // 处理角色绑定
-    if (roleIds !== undefined) {
-      await this.handleUserRolesBinding(id, roleIds);
-    }
-
-    // 返回更新后的完整数据（包含关联）
-    return this.findOne(id);
-  }
 }

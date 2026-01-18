@@ -48,15 +48,7 @@ export class UserRepository extends BaseCrudRepository<
 > {
   protected readonly defaultPageSize = 10;
   protected readonly defaultSelect = {
-  "id": true,
-  "username": true,
-  "email": true,
-  "nickname": true,
-  "URL": true,
-  "status": true,
-  "roles": true,
-  "operationLogs": true,
-  "updatedAt": true
+  "id": true
 } as const;
 
   constructor(private readonly prisma: PrismaService) {
@@ -67,7 +59,4 @@ export class UserRepository extends BaseCrudRepository<
     return this.prisma.user;
   }
 
-  async updateStatus(id: number, status: string): Promise<User> {
-    return this.update(id, { status } as any);
-  }
 }

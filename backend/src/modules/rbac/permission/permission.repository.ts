@@ -49,13 +49,7 @@ export class PermissionRepository extends BaseCrudRepository<
   protected readonly defaultPageSize = 10;
   protected readonly defaultSelect = {
   "id": true,
-  "name": true,
-  "code": true,
-  "resource": true,
-  "action": true,
-  "description": true,
-  "Text": true,
-  "updatedAt": true
+  "Text": true
 } as const;
 
   constructor(private readonly prisma: PrismaService) {

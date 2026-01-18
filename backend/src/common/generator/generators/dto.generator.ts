@@ -13,7 +13,22 @@ export class DtoGenerator {
    */
   generateCreateDto(resource: ResourceDefinition): string {
     const className = this.toPascalCase(resource.name);
-    const fields = resource.fields.filter((f) => f.includeInCreate !== false);
+    // 过滤字段：排除自动生成的字段和不应该在 Create DTO 中的字段
+    const fields = resource.fields.filter((f) => {
+      // 排除 includeInCreate 为 false 的字段
+      if (f.includeInCreate === false) {
+        return false;
+      }
+      // 排除自动生成的字段
+      if (f.name === 'id' || f.name === 'createdAt' || f.name === 'updatedAt') {
+        return false;
+      }
+      // 排除关系字段（relation 类型）
+      if (f.type === 'relation') {
+        return false;
+      }
+      return true;
+    });
 
     const imports = this.generateImports(fields);
     const classBody = fields
@@ -40,12 +55,18 @@ ${classBody}
 
     // 如果有绑定字段，需要添加额外的导入和字段
     if (bindingFields) {
+      // bindingFields 可能已经包含了导入语句
+      const hasImports = bindingFields.includes('import {');
+      const imports = hasImports 
+        ? '' 
+        : `import { IsOptional, IsArray, IsInt } from 'class-validator';
+`;
+      
       return `import { PartialType } from '@nestjs/mapped-types';
-import { IsOptional, IsArray, IsString } from 'class-validator';
-import { ${createDtoName} } from './create-${resource.name}.dto';
+${imports}import { ${createDtoName} } from './create-${resource.name}.dto';
 
 export class Update${className}Dto extends PartialType(${createDtoName}) {
-${bindingFields}
+${hasImports ? bindingFields.split('\n').slice(1).join('\n') : bindingFields}
 }
 `;
     }
@@ -66,6 +87,7 @@ export class Update${className}Dto extends PartialType(${createDtoName}) {}
     }
 
     const fields: string[] = [];
+    const imports = new Set<string>(['IsOptional']);
 
     resource.relationBindings.forEach((binding) => {
       // 如果配置为在Update中处理，才添加到DTO中
@@ -77,19 +99,30 @@ export class Update${className}Dto extends PartialType(${createDtoName}) {}
         const dtoFieldName = binding.dtoFieldName || this.generateDtoFieldName(binding, relationType);
         
         if (relationType === 'many-to-many') {
-          // 多对多：数组类型
+          // 多对多：数组类型，使用 number[]（因为 ID 现在是 Int）
+          imports.add('IsArray');
+          imports.add('IsInt');
           fields.push(`  @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  ${dtoFieldName}?: string[];`);
+  @IsInt({ each: true })
+  ${dtoFieldName}?: number[];`);
         } else {
-          // 一对一和一对多：单个ID类型
+          // 一对一和一对多：单个ID类型，使用 number（因为 ID 现在是 Int）
+          imports.add('IsInt');
           fields.push(`  @IsOptional()
-  @IsString()
-  ${dtoFieldName}?: string;`);
+  @IsInt()
+  ${dtoFieldName}?: number;`);
         }
       }
     });
+
+    // 如果有绑定字段，更新导入语句
+    if (fields.length > 0 && imports.size > 1) {
+      const importArray = Array.from(imports);
+      return `import { ${importArray.join(', ')} } from 'class-validator';
+
+${fields.join('\n\n')}`;
+    }
 
     return fields.join('\n\n');
   }

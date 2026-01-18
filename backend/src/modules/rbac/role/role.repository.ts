@@ -48,12 +48,7 @@ export class RoleRepository extends BaseCrudRepository<
 > {
   protected readonly defaultPageSize = 10;
   protected readonly defaultSelect = {
-  "id": true,
-  "name": true,
-  "code": true,
-  "description": true,
-  "Text": true,
-  "updatedAt": true
+  "id": true
 } as const;
 
   constructor(private readonly prisma: PrismaService) {

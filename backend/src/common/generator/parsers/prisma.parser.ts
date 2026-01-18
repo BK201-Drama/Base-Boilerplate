@@ -104,7 +104,8 @@ export class PrismaSchemaParser {
    * 解析字段
    */
   private parseFields(modelBlock: string): FieldConfig[] {
-    const fieldRegex = /(\w+)\s+(\w+(?:\[\])?)\s*([^@\n]*)/g;
+    // 改进的正则表达式：更准确地匹配字段定义
+    const fieldRegex = /(\w+)\s+(\w+(?:\[\])?)\s*([^@\n]*?)(?=\n\s*\w+\s+\w|$)/g;
     const fields: FieldConfig[] = [];
     let match;
 
@@ -118,6 +119,23 @@ export class PrismaSchemaParser {
 
       // 跳过 id 字段（通常由系统管理）
       if (fieldName === 'id') {
+        continue;
+      }
+
+      // 跳过自动生成的时间戳字段
+      if (fieldName === 'createdAt' || fieldName === 'updatedAt') {
+        continue;
+      }
+
+      // 跳过数组类型的关系字段（如 roles Role[]）
+      if (fieldType.includes('[]') && !attributes.includes('@')) {
+        // 如果字段类型是数组且没有其他属性，可能是关系字段
+        continue;
+      }
+
+      // 检查是否是有效的字段定义（不是注释或其他内容）
+      const trimmedAttributes = attributes.trim();
+      if (trimmedAttributes.startsWith('//')) {
         continue;
       }
 

@@ -17,10 +17,7 @@ export class PermissionService extends BaseCrudService<
   protected readonly defaultPageSize = 10;
   protected readonly defaultSelect = {
   "id": true,
-  "name": true,
-  "code": true,
-  "resource": true,
-  "action": true
+  "Text": true
 } as const;
 
   constructor(
