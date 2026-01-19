@@ -1,50 +1,22 @@
 /**
- * 角色模型定义（TypeScript 方式）
+ * 角色模型定义（装饰器方式）
  */
 
-import { ModelDefinition } from '../../src/common/generator/types/model.types';
+import { Model, Field, ManyToMany } from '@/common/generator/decorators';
 
-const roleModel: ModelDefinition = {
-  name: 'Role',
-  tableName: 'roles',
-  description: '角色资源（RBAC系统）',
-  
-  fields: [
-    {
-      name: 'name',
-      type: 'String',
-      unique: true,
-      description: '角色名称',
-    },
-    {
-      name: 'code',
-      type: 'String',
-      unique: true,
-      description: '角色代码',
-    },
-    {
-      name: 'description',
-      type: 'String',
-      optional: true,
-      dbType: '@db.Text',
-      description: '角色描述',
-    },
-  ],
+@Model('roles', '角色资源（RBAC系统）')
+export class Role {
+  @Field('String', { unique: true, description: '角色名称' })
+  name: string;
 
-  relations: [
-    {
-      field: 'permissions',
-      model: 'Permission',
-      type: 'many-to-many',
-      junctionTable: {
-        name: 'RolePermission',
-        currentForeignKey: 'roleId',
-        relatedForeignKey: 'permissionId',
-        unique: true,
-        cascadeDelete: true,
-      },
-    },
-  ],
-};
+  @Field('String', { unique: true, description: '角色代码' })
+  code: string;
 
-export default roleModel;
+  @Field('String', { optional: true, dbType: '@db.Text', description: '角色描述' })
+  description?: string;
+
+  @ManyToMany('Permission', {
+    junctionTable: 'RolePermission',
+  })
+  permissions: any[];
+}

@@ -6,7 +6,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { ModelDefinition, RelationDefinition, JunctionTableConfig } from '../types/model.types';
+import { ModelDefinition, RelationDefinition, JunctionTableConfig, IndexDefinition } from '../types/model.types';
 
 export interface CompiledModel {
   name: string;
@@ -66,13 +66,55 @@ export class SchemaCompiler {
     
     // 先加载 TypeScript 模型定义
     for (const file of files) {
-      if (file.endsWith('.model.ts')) {
+      if (file.endsWith('.model.ts') && !file.endsWith('decorators.model.ts')) {
         const modelPath = path.join(this.modelsDir, file);
         try {
           // 动态导入 TypeScript 文件
           delete require.cache[require.resolve(modelPath)];
           const modelModule = require(modelPath);
-          const model: ModelDefinition = modelModule.default || modelModule;
+          
+          // 尝试从装饰器类中提取模型定义
+          let model: ModelDefinition | null = null;
+          
+          // 检查是否是装饰器类（导出的是类）
+          const exportedClass = modelModule.default || Object.values(modelModule).find(
+            (exp: any) => typeof exp === 'function' && exp.prototype && exp.name
+          );
+          
+          if (exportedClass && typeof exportedClass === 'function' && exportedClass.name) {
+            // 尝试从装饰器中提取
+            try {
+              const decoratorsPath = path.join(process.cwd(), 'src', 'common', 'generator', 'decorators', 'index.ts');
+              if (fs.existsSync(decoratorsPath)) {
+                delete require.cache[require.resolve(decoratorsPath)];
+                const { extractModelDefinition } = require(decoratorsPath);
+                model = extractModelDefinition(exportedClass);
+                
+                // 如果提取成功，尝试从模块中提取枚举
+                if (model) {
+                  // 查找模块中导出的枚举（以 Enum 结尾的导出）
+                  const enumExports = Object.entries(modelModule).filter(
+                    ([key, value]: [string, any]) => 
+                      key.endsWith('Enum') && typeof value === 'object' && value !== null
+                  );
+                  
+                  if (enumExports.length > 0 && (!model.enums || model.enums.length === 0)) {
+                    model.enums = enumExports.map(([enumName, enumObj]: [string, any]) => ({
+                      name: enumName,
+                      values: Object.values(enumObj).filter(v => typeof v === 'string') as string[],
+                    }));
+                  }
+                }
+              }
+            } catch (e) {
+              // 如果提取失败，继续尝试作为配置对象
+            }
+          }
+          
+          // 如果不是装饰器类，尝试作为配置对象
+          if (!model) {
+            model = modelModule.default || modelModule;
+          }
           
           if (model && model.name) {
             this.models.set(model.name, model);
@@ -199,6 +241,31 @@ export class SchemaCompiler {
       }
     }
 
+    // 自动为外键字段添加索引（如果还没有定义）
+    if (model.relations && model.indexes) {
+      const existingIndexFields = new Set<string>();
+      model.indexes.forEach(idx => {
+        idx.fields.forEach(field => existingIndexFields.add(field));
+      });
+
+      // 为外键字段自动添加索引
+      for (const relation of model.relations) {
+        if ((relation.type === 'many-to-one' || relation.type === 'one-to-one') && relation.foreignKey) {
+          if (!existingIndexFields.has(relation.foreignKey)) {
+            model.indexes.push({ fields: [relation.foreignKey] });
+          }
+        }
+      }
+    } else if (model.relations) {
+      // 如果没有定义索引，自动为外键添加
+      model.indexes = [];
+      for (const relation of model.relations) {
+        if ((relation.type === 'many-to-one' || relation.type === 'one-to-one') && relation.foreignKey) {
+          model.indexes.push({ fields: [relation.foreignKey] });
+        }
+      }
+    }
+
     // 生成模型内容
     const content = this.generateModelContent(model);
 
@@ -236,9 +303,24 @@ export class SchemaCompiler {
       lines.push('  id        Int      @id @default(autoincrement())');
     }
 
+    // 收集关系中使用的外键字段名，避免重复生成
+    const foreignKeyFields = new Set<string>();
+    if (model.relations) {
+      for (const relation of model.relations) {
+        if (relation.foreignKey && (relation.type === 'many-to-one' || relation.type === 'one-to-one')) {
+          foreignKeyFields.add(relation.foreignKey);
+        }
+      }
+    }
+
     // 字段定义（排除 id、createdAt、updatedAt，它们会自动生成）
+    // 同时排除关系中使用的外键字段（它们会在关系字段中自动生成）
     for (const field of model.fields) {
       if (field.name === 'id' || field.name === 'createdAt' || field.name === 'updatedAt') {
+        continue;
+      }
+      // 如果是关系的外键字段，跳过（会在关系字段中自动生成）
+      if (foreignKeyFields.has(field.name)) {
         continue;
       }
       const fieldLine = this.generateField(field, model.name);
@@ -247,9 +329,22 @@ export class SchemaCompiler {
       }
     }
 
-    // 关系字段
+    // 关系字段（many-to-one 和 one-to-one 会自动生成外键字段）
     if (model.relations) {
       for (const relation of model.relations) {
+        // 对于 many-to-one 和 one-to-one，先生成外键字段
+        if ((relation.type === 'many-to-one' || relation.type === 'one-to-one') && relation.foreignKey) {
+          const foreignKeyField = model.fields.find(f => f.name === relation.foreignKey);
+          if (!foreignKeyField) {
+            // 如果字段定义中没有外键字段，自动生成
+            // 根据关系模型名称生成注释，如 User -> 用户ID
+            const comment = relation.model === 'User' ? '  // 用户ID' : '';
+            if (comment) {
+              lines.push(comment);
+            }
+            lines.push(`  ${relation.foreignKey} Int`);
+          }
+        }
         const relationLine = this.generateRelationField(relation, model.name);
         if (relationLine) {
           lines.push(relationLine);
@@ -267,12 +362,35 @@ export class SchemaCompiler {
       lines.push('  updatedAt DateTime @updatedAt');
     }
 
+    // 生成索引
+    if (model.indexes && model.indexes.length > 0) {
+      lines.push(''); // 空行分隔
+      for (const index of model.indexes) {
+        const indexLine = this.generateIndex(index);
+        if (indexLine) {
+          lines.push(indexLine);
+        }
+      }
+    }
+
     // 表名映射
     const tableName = model.tableName || this.pluralize(model.name.toLowerCase());
     lines.push(`\n  @@map("${tableName}")`);
     lines.push('}');
 
     return lines.join('\n');
+  }
+
+  /**
+   * 生成索引定义
+   */
+  private generateIndex(index: { fields: string[]; unique?: boolean; name?: string }): string {
+    const fieldsStr = index.fields.join(', ');
+    if (index.unique) {
+      return `  @@unique([${fieldsStr}]${index.name ? `, name: "${index.name}"` : ''})`;
+    } else {
+      return `  @@index([${fieldsStr}]${index.name ? `, name: "${index.name}"` : ''})`;
+    }
   }
 
   /**
@@ -329,6 +447,11 @@ export class SchemaCompiler {
     } else if (relation.type === 'one-to-many') {
       // 一对多关系：生成数组字段
       return `  ${relation.field} ${relation.model}[]`;
+    } else if (relation.type === 'many-to-one') {
+      // 多对一关系：生成单个字段，带关系属性
+      const foreignKey = relation.foreignKey || `${relation.model.charAt(0).toLowerCase() + relation.model.slice(1)}Id`;
+      const cascadeDelete = relation.cascadeDelete ? ', onDelete: Cascade' : '';
+      return `  ${relation.field} ${relation.model} @relation(fields: [${foreignKey}], references: [id]${cascadeDelete})`;
     } else if (relation.type === 'one-to-one') {
       // 一对一关系：生成可选字段
       return `  ${relation.field} ${relation.model}${relation.optional ? '?' : ''}`;

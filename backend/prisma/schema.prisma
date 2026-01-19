@@ -3,6 +3,8 @@ generator client {
 }
 
 datasource db {
+  provider = "postgresql"
+}
 
 enum UserStatusEnum {
   active
@@ -20,7 +22,6 @@ model RolePermission {
 
   @@map("role_permissions")
 }
-
 model UserRole {
   id     Int  @id @default(autoincrement())
   userId Int
@@ -32,25 +33,38 @@ model UserRole {
   @@map("user_roles")
 }
 
+// 操作日志
 model OperationLog {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  method     String // HTTP 方法
-  path       String // 请求路径
-  params     String?  @db.Text // 请求参数（JSON）
-  response   String?  @db.Text // 响应数据（JSON）
-  statusCode Int // HTTP 状态码
-  ip         String?
-  userAgent  String?
-  duration   Int? // 请求耗时（毫秒）
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  // HTTP 方法
+  method String
+  // 请求路径
+  path String
+  // 请求参数（JSON）
+  params String? @db.Text
+  // 响应数据（JSON）
+  response String? @db.Text
+  // HTTP 状态码
+  statusCode Int
+  // IP 地址
+  ip String?
+  // User Agent
+  userAgent String?
+  // 请求耗时（毫秒）
+  duration Int?
+  // 用户ID
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([userId])
   @@index([createdAt])
+  @@index([userId])
+
   @@map("operation_logs")
 }
 
+// 权限资源（RBAC系统）
 model Permission {
   id        Int      @id @default(autoincrement())
   // 权限名称
@@ -63,12 +77,14 @@ model Permission {
   action String
   // 权限描述
   description String? @db.Text
+  roles Role[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("permission")
+  @@map("permissions")
 }
 
+// 角色资源（RBAC系统）
 model Role {
   id        Int      @id @default(autoincrement())
   // 角色名称
@@ -77,14 +93,14 @@ model Role {
   code String @unique
   // 角色描述
   description String? @db.Text
+  permissions Permission[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  rolePermissions Permission[]
-
-  @@map("role")
+  @@map("roles")
 }
 
+// 用户资源（RBAC系统）
 model User {
   id        Int      @id @default(autoincrement())
   // 用户名
@@ -99,10 +115,9 @@ model User {
   avatar String?
   // 用户状态
   status UserStatusEnum @default(active)
+  roles Role[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userRoles Role[]
-
-  @@map("user")
+  @@map("users")
 }

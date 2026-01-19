@@ -23,13 +23,19 @@ export interface JunctionTableConfig {
 }
 
 export interface RelationDefinition {
-  field: string; // 关系字段名，如 'roles', 'permissions'
-  model: string; // 关联的模型名称，如 'Role', 'Permission'
-  type: 'one-to-one' | 'one-to-many' | 'many-to-many'; // 关系类型
+  field: string; // 关系字段名，如 'roles', 'permissions', 'user'
+  model: string; // 关联的模型名称，如 'Role', 'Permission', 'User'
+  type: 'one-to-one' | 'one-to-many' | 'many-to-many' | 'many-to-one'; // 关系类型
   junctionTable?: JunctionTableConfig; // 多对多关系的关联表配置
-  foreignKey?: string; // 外键字段名（用于一对一、一对多）
+  foreignKey?: string; // 外键字段名（用于一对一、一对多、多对一）
   cascadeDelete?: boolean; // 是否级联删除
   optional?: boolean; // 关系是否可选
+}
+
+export interface IndexDefinition {
+  fields: string[]; // 索引字段数组，如 ['userId'] 或 ['userId', 'createdAt']
+  unique?: boolean; // 是否唯一索引
+  name?: string; // 索引名称（可选）
 }
 
 export interface ModelDefinition {
@@ -39,6 +45,7 @@ export interface ModelDefinition {
   fields: FieldDefinition[]; // 字段定义
   relations?: RelationDefinition[]; // 关系定义
   enums?: EnumDefinition[]; // 枚举定义（如果模型需要定义枚举）
+  indexes?: IndexDefinition[]; // 索引定义
 }
 
 export interface EnumDefinition {

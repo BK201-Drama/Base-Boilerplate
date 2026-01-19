@@ -1,75 +1,40 @@
 /**
- * 用户模型定义（TypeScript 方式）
+ * 用户模型定义（装饰器方式）
  * 自动生成关联表 UserRole
  */
 
-import { ModelDefinition } from '../../src/common/generator/types/model.types';
+import { Model, Field, ManyToMany } from '@/common/generator/decorators';
 
-const userModel: ModelDefinition = {
-  name: 'User',
-  tableName: 'users',
-  description: '用户资源（RBAC系统）',
-  
-  fields: [
-    {
-      name: 'username',
-      type: 'String',
-      unique: true,
-      description: '用户名',
-    },
-    {
-      name: 'email',
-      type: 'String',
-      unique: true,
-      description: '邮箱',
-    },
-    {
-      name: 'password',
-      type: 'String',
-      description: '密码',
-    },
-    {
-      name: 'nickname',
-      type: 'String',
-      optional: true,
-      description: '昵称',
-    },
-    {
-      name: 'avatar',
-      type: 'String',
-      optional: true,
-      description: '头像URL',
-    },
-    {
-      name: 'status',
-      type: 'UserStatusEnum',
-      default: 'active',
-      description: '用户状态',
-    },
-  ],
+// 枚举定义
+export enum UserStatusEnum {
+  active = 'active',
+  inactive = 'inactive',
+  banned = 'banned',
+}
 
-  enums: [
-    {
-      name: 'UserStatusEnum',
-      values: ['active', 'inactive', 'banned'],
-    },
-  ],
+@Model('users', '用户资源（RBAC系统）')
+export class User {
+  @Field('String', { unique: true, description: '用户名' })
+  username: string;
 
-  relations: [
-    {
-      field: 'roles',
-      model: 'Role',
-      type: 'many-to-many',
-      junctionTable: {
-        name: 'UserRole',
-        currentForeignKey: 'userId',
-        relatedForeignKey: 'roleId',
-        unique: true,
-        cascadeDelete: true,
-        mapName: 'user_roles',
-      },
-    },
-  ],
-};
+  @Field('String', { unique: true, description: '邮箱' })
+  email: string;
 
-export default userModel;
+  @Field('String', { description: '密码' })
+  password: string;
+
+  @Field('String', { optional: true, description: '昵称' })
+  nickname?: string;
+
+  @Field('String', { optional: true, description: '头像URL' })
+  avatar?: string;
+
+  @Field('UserStatusEnum', { default: 'active', description: '用户状态' })
+  status: string;
+
+  @ManyToMany('Role', {
+    junctionTable: 'UserRole',
+    mapName: 'user_roles',
+  })
+  roles: any[];
+}
