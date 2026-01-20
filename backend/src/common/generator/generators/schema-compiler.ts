@@ -36,17 +36,32 @@ export class SchemaCompiler {
     // 1. 加载所有模型定义
     await this.loadModels();
     
-    // 2. 编译每个模型
+    // 2. 先收集所有关联表（确保在编译任何模型之前，所有关联表都已收集）
+    console.log('🔗 收集关联表...');
+    for (const [name, model] of this.models) {
+      if (model.relations) {
+        for (const relation of model.relations) {
+          if (relation.type === 'many-to-many' && relation.junctionTable) {
+            const junctionKey = relation.junctionTable.name.toLowerCase();
+            if (!this.allJunctionTables.has(junctionKey)) {
+              this.allJunctionTables.set(junctionKey, relation.junctionTable);
+            }
+          }
+        }
+      }
+    }
+    
+    // 3. 编译每个模型
     console.log('📝 编译模型定义...');
     for (const [name, model] of this.models) {
       this.compileModel(name, model);
     }
     
-    // 3. 生成关联表
+    // 4. 生成关联表
     console.log('🔗 生成关联表...');
     this.generateJunctionTables();
     
-    // 4. 合并到 schema.prisma
+    // 5. 合并到 schema.prisma
     console.log('📋 合并到 schema.prisma...');
     this.mergeToSchema();
     
@@ -352,6 +367,102 @@ export class SchemaCompiler {
       }
     }
 
+    // 添加反向关系字段
+    // 1. 多对多关系的反向关系
+    // 对于显式多对多关系，Prisma 要求：
+    // - 两个模型都有指向关联表的字段（如 userRoles UserRole[]）
+    // - 两个模型都有指向对方的关系字段（如 User.roles Role[], Role.users User[]）
+    
+    // 1.1 添加指向关联表的字段
+    for (const [key, junctionTable] of this.allJunctionTables) {
+      const models = this.findModelsForJunctionTable(junctionTable);
+      if (models.length === 2) {
+        // 检查当前模型是否是关联表的两个模型之一
+        const isInvolved = models[0] === model.name || models[1] === model.name;
+        if (isInvolved) {
+          const relationName = junctionTable.name;
+          const junctionFieldName = this.getJunctionTableFieldName(junctionTable, model.name);
+          const junctionTableModelName = junctionTable.name;
+          // 检查是否已经存在指向关联表的字段（检查 lines 数组）
+          const hasJunctionField = lines.some(line => {
+            const trimmed = line.trim();
+            if (trimmed.startsWith(`${junctionFieldName} `)) {
+              return trimmed.includes(`${junctionTableModelName}[]`) || trimmed.includes(`${junctionTableModelName}`);
+            }
+            return false;
+          });
+          // 对于显式多对多关系，必须添加指向关联表的字段
+          if (!hasJunctionField) {
+            // 在 createdAt 字段之前插入，以保持字段顺序
+            const createdAtIndex = lines.findIndex(line => line.trim().startsWith('createdAt'));
+            if (createdAtIndex >= 0) {
+              lines.splice(createdAtIndex, 0, `  ${junctionFieldName} ${junctionTableModelName}[] @relation("${relationName}")`);
+            } else {
+              lines.push(`  ${junctionFieldName} ${junctionTableModelName}[] @relation("${relationName}")`);
+            }
+          }
+        }
+      }
+    }
+    
+    // 1.2 添加多对多关系的反向关系字段（如 Role.users User[]）
+    // 遍历所有模型，找到定义了多对多关系指向当前模型的模型
+    for (const [otherModelName, otherModel] of this.models) {
+      if (otherModelName === model.name) continue;
+      if (otherModel.relations) {
+        for (const relation of otherModel.relations) {
+          if (
+            relation.type === 'many-to-many' &&
+            relation.model === model.name &&
+            relation.junctionTable
+          ) {
+            // 找到指向当前模型的多对多关系
+            // 需要在当前模型中添加反向关系字段
+            const relationName = relation.junctionTable.name;
+            const reverseFieldName = this.pluralize(otherModelName.toLowerCase());
+            // 检查是否已经存在这个关系字段
+            const hasReverseField = lines.some(line => {
+              const trimmed = line.trim();
+              return trimmed.startsWith(`${reverseFieldName} `) && 
+                     (trimmed.includes(`${otherModelName}[]`) || trimmed.includes(`${otherModelName}`));
+            });
+            if (!hasReverseField) {
+              // 在 createdAt 字段之前插入，以保持字段顺序
+              const createdAtIndex = lines.findIndex(line => line.trim().startsWith('createdAt'));
+              if (createdAtIndex >= 0) {
+                lines.splice(createdAtIndex, 0, `  ${reverseFieldName} ${otherModelName}[] @relation("${relationName}")`);
+              } else {
+                lines.push(`  ${reverseFieldName} ${otherModelName}[] @relation("${relationName}")`);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 2. 多对一关系的反向关系（一对多）
+    // 遍历所有模型，找到指向当前模型的 many-to-one 关系
+    for (const [otherModelName, otherModel] of this.models) {
+      if (otherModelName === model.name) continue;
+      if (otherModel.relations) {
+        for (const relation of otherModel.relations) {
+          if (relation.type === 'many-to-one' && relation.model === model.name) {
+            // 找到指向当前模型的 many-to-one 关系，添加反向的一对多关系
+            // 使用与 many-to-one 相同的关系名称
+            const relationName = `${otherModelName}${model.name}s`;
+            const fieldName = this.pluralize(otherModelName.toLowerCase());
+            // 检查是否已经存在这个关系字段
+            const hasField = lines.some(line => 
+              line.includes(`${fieldName} ${otherModelName}[]`)
+            );
+            if (!hasField) {
+              lines.push(`  ${fieldName} ${otherModelName}[] @relation("${relationName}")`);
+            }
+          }
+        }
+      }
+    }
+
     // 时间戳字段（总是添加，除非明确在 fields 中定义了）
     const hasCreatedAt = model.fields.some(f => f.name === 'createdAt');
     const hasUpdatedAt = model.fields.some(f => f.name === 'updatedAt');
@@ -442,16 +553,22 @@ export class SchemaCompiler {
    */
   private generateRelationField(relation: RelationDefinition, modelName: string): string {
     if (relation.type === 'many-to-many') {
-      // 多对多关系：生成数组字段
-      return `  ${relation.field} ${relation.model}[]`;
+      // 多对多关系：生成数组字段，使用关联表名称作为关系名称
+      const relationName = relation.junctionTable?.name || `${modelName}${relation.model}`;
+      return `  ${relation.field} ${relation.model}[] @relation("${relationName}")`;
     } else if (relation.type === 'one-to-many') {
       // 一对多关系：生成数组字段
+      // 对于一对多关系，需要在"多"的一方（many-to-one）定义关系名称
+      // 这里暂时不添加关系名称，让 many-to-one 的一方定义
       return `  ${relation.field} ${relation.model}[]`;
     } else if (relation.type === 'many-to-one') {
       // 多对一关系：生成单个字段，带关系属性
       const foreignKey = relation.foreignKey || `${relation.model.charAt(0).toLowerCase() + relation.model.slice(1)}Id`;
       const cascadeDelete = relation.cascadeDelete ? ', onDelete: Cascade' : '';
-      return `  ${relation.field} ${relation.model} @relation(fields: [${foreignKey}], references: [id]${cascadeDelete})`;
+      // 生成关系名称：使用模型名称组合，如 OperationLogUsers
+      // 注意：关系名称应该与反向关系字段使用的关系名称一致
+      const relationName = `${modelName}${relation.model}s`;
+      return `  ${relation.field} ${relation.model} @relation("${relationName}", fields: [${foreignKey}], references: [id]${cascadeDelete})`;
     } else if (relation.type === 'one-to-one') {
       // 一对一关系：生成可选字段
       return `  ${relation.field} ${relation.model}${relation.optional ? '?' : ''}`;
@@ -505,12 +622,15 @@ export class SchemaCompiler {
     const inferredModel1 = this.inferModelNameFromForeignKey(model1ForeignKey) || model1;
     const inferredModel2 = this.inferModelNameFromForeignKey(model2ForeignKey) || model2;
 
+    // 生成关系名称（使用关联表名称作为关系名称）
+    const relationName = junctionTable.name;
+
     return `model ${junctionTable.name} {
   id     Int  @id @default(autoincrement())
   ${model1ForeignKey} Int
   ${model2ForeignKey} Int
-  ${inferredModel1.toLowerCase()}   ${inferredModel1} @relation(fields: [${model1ForeignKey}], references: [id]${cascadeDelete})
-  ${inferredModel2.toLowerCase()}   ${inferredModel2} @relation(fields: [${model2ForeignKey}], references: [id]${cascadeDelete})${uniqueConstraint}
+  ${inferredModel1.toLowerCase()}   ${inferredModel1} @relation("${relationName}", fields: [${model1ForeignKey}], references: [id]${cascadeDelete})
+  ${inferredModel2.toLowerCase()}   ${inferredModel2} @relation("${relationName}", fields: [${model2ForeignKey}], references: [id]${cascadeDelete})${uniqueConstraint}
 
   @@map("${mapName}")
 }`;
@@ -721,6 +841,21 @@ datasource db {
       return word + 'es';
     }
     return word + 's';
+  }
+
+  /**
+   * 获取关联表字段名
+   * 例如：UserRole 关联表，对于 User 模型，返回 "userRoles"（指向关联表的字段）
+   * RolePermission 关联表，对于 Permission 模型，返回 "rolePermissions"
+   * 注意：这个字段名应该与多对多关系字段名不同，避免冲突
+   */
+  private getJunctionTableFieldName(junctionTable: JunctionTableConfig, modelName: string): string {
+    // 从关联表名称推断字段名
+    // 例如：UserRole -> userRoles, RolePermission -> rolePermissions
+    const tableName = junctionTable.name;
+    // 直接使用关联表名称的小写复数形式
+    // 例如：RolePermission -> rolePermissions, UserRole -> userRoles
+    return this.pluralize(tableName.charAt(0).toLowerCase() + tableName.slice(1));
   }
 
   /**

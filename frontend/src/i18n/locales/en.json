@@ -59,7 +59,12 @@
     "registerFailed": "Registration failed",
     "registerSuccess": "Registration successful, please login",
     "logoutSuccess": "Logged out successfully",
-    "sessionExpired": "Session expired, please login again"
+    "sessionExpired": "Session expired, please login again",
+    "loginWithWechat": "Login with WeChat",
+    "or": "OR",
+    "wechatLoginFailed": "WeChat login failed",
+    "wechatLoginError": "WeChat login error",
+    "wechatAuthUrlError": "Failed to get WeChat authorization URL"
   },
   "users": {
     "title": "User Management",

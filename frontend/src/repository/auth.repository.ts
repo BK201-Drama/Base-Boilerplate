@@ -14,6 +14,8 @@ export interface AuthRepository {
   checkAuth: (token: string) => Promise<boolean>;
   register: (data: { username: string; email: string; password: string; nickname?: string }) => Promise<boolean>;
   getProfile: (token: string) => Promise<User | null>;
+  getWechatAuthUrl: (redirectUri: string, state?: string) => Promise<string>;
+  wechatLogin: (code: string, state?: string) => Promise<{ access_token: string; user: User } | null>;
 }
 
 export const authRepository: AuthRepository = {
@@ -60,6 +62,34 @@ export const authRepository: AuthRepository = {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  getWechatAuthUrl: async (redirectUri: string, state?: string) => {
+    try {
+      const params = new URLSearchParams({ redirectUri });
+      if (state) {
+        params.append('state', state);
+      }
+      const response = await httpClient.get(`/auth/wechat/auth-url?${params.toString()}`);
+      return response.data.authUrl;
+    } catch {
+      throw new Error('Failed to get WeChat auth URL');
+    }
+  },
+
+  wechatLogin: async (code: string, state?: string) => {
+    try {
+      const response = await httpClient.post('/auth/wechat/login', { code, state });
+      if (response.data.access_token) {
+        return {
+          access_token: response.data.access_token,
+          user: response.data.user,
+        };
+      }
+      return null;
     } catch {
       return null;
     }

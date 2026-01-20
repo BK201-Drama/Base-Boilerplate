@@ -16,8 +16,8 @@ model RolePermission {
   id     Int  @id @default(autoincrement())
   permissionId Int
   roleId Int
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation("RolePermission", fields: [permissionId], references: [id], onDelete: Cascade)
+  role   Role @relation("RolePermission", fields: [roleId], references: [id], onDelete: Cascade)
   @@unique([permissionId, roleId])
 
   @@map("role_permissions")
@@ -26,8 +26,8 @@ model UserRole {
   id     Int  @id @default(autoincrement())
   userId Int
   roleId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user   User @relation("UserRole", fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation("UserRole", fields: [roleId], references: [id], onDelete: Cascade)
   @@unique([userId, roleId])
 
   @@map("user_roles")
@@ -54,7 +54,7 @@ model OperationLog {
   duration Int?
   // 用户ID
   userId Int
-  user User @relation(fields: [userId], references: [id])
+  user User @relation("OperationLogUsers", fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -77,7 +77,8 @@ model Permission {
   action String
   // 权限描述
   description String? @db.Text
-  roles Role[]
+  roles Role[] @relation("RolePermission")
+  rolePermissions RolePermission[] @relation("RolePermission")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -93,7 +94,10 @@ model Role {
   code String @unique
   // 角色描述
   description String? @db.Text
-  permissions Permission[]
+  permissions Permission[] @relation("RolePermission")
+  rolePermissions RolePermission[] @relation("RolePermission")
+  userRoles UserRole[] @relation("UserRole")
+  users User[] @relation("UserRole")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -104,20 +108,33 @@ model Role {
 model User {
   id        Int      @id @default(autoincrement())
   // 用户名
-  username String @unique
+  username String? @unique
   // 邮箱
-  email String @unique
+  email String? @unique
   // 密码
-  password String
+  password String?
   // 昵称
   nickname String?
   // 头像URL
   avatar String?
+  // 微信 OpenID
+  wechatOpenId String? @unique
+  // 微信 UnionID
+  wechatUnionId String?
+  // 微信昵称
+  wechatNickname String?
+  // 微信头像
+  wechatAvatar String?
   // 用户状态
   status UserStatusEnum @default(active)
-  roles Role[]
+  roles Role[] @relation("UserRole")
+  userRoles UserRole[] @relation("UserRole")
+  operationlogs OperationLog[] @relation("OperationLogUsers")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([wechatUnionId])
+  @@index([wechatOpenId])
 
   @@map("users")
 }

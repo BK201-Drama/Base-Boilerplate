@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
 
 export class LoginDto {
   @IsNotEmpty({ message: 'validation.username_or_email_required' })
@@ -24,5 +24,16 @@ export class RegisterDto {
   password: string;
 
   @IsString()
+  @IsOptional()
   nickname?: string;
+}
+
+export class WechatLoginDto {
+  @IsNotEmpty({ message: 'validation.code_required' })
+  @IsString()
+  code: string;
+
+  @IsString()
+  @IsOptional()
+  state?: string;
 }
