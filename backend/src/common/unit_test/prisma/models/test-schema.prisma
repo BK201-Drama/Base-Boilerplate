@@ -1,0 +1,11 @@
+
+
+// SingleFile 模型
+model SingleFile {
+  id        Int      @id @default(autoincrement())
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("single_file")
+}

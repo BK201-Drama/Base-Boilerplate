@@ -1,0 +1,9 @@
+// TestResource 模型
+model TestResource {
+  id        Int      @id @default(autoincrement())
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("test-resource")
+}

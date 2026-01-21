@@ -22,6 +22,7 @@ model RolePermission {
 
   @@map("role_permissions")
 }
+
 model UserRole {
   id     Int  @id @default(autoincrement())
   userId Int
@@ -33,7 +34,6 @@ model UserRole {
   @@map("user_roles")
 }
 
-// 操作日志
 model OperationLog {
   id        Int      @id @default(autoincrement())
   // HTTP 方法
@@ -64,7 +64,6 @@ model OperationLog {
   @@map("operation_logs")
 }
 
-// 权限资源（RBAC系统）
 model Permission {
   id        Int      @id @default(autoincrement())
   // 权限名称
@@ -85,7 +84,6 @@ model Permission {
   @@map("permissions")
 }
 
-// 角色资源（RBAC系统）
 model Role {
   id        Int      @id @default(autoincrement())
   // 角色名称
@@ -104,7 +102,6 @@ model Role {
   @@map("roles")
 }
 
-// 用户资源（RBAC系统）
 model User {
   id        Int      @id @default(autoincrement())
   // 用户名

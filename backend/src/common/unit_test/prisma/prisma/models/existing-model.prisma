@@ -1,0 +1,9 @@
+// ExistingModel 模型
+model ExistingModel {
+  id        Int      @id @default(autoincrement())
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("existing_model")
+}

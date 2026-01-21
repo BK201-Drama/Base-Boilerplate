@@ -1,0 +1,8 @@
+// Empty 模型
+model Empty {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("empty")
+}
