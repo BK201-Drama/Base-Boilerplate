@@ -4,7 +4,7 @@
 
 import { Model, Field, ManyToMany } from '@/common/generator/decorators';
 
-@Model('roles', '角色资源（RBAC系统）')
+@Model('role', '角色资源（RBAC系统）')
 export class Role {
   @Field('String', { unique: true, description: '角色名称' })
   name: string;

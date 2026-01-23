@@ -12,7 +12,7 @@ export enum UserStatusEnum {
   banned = 'banned',
 }
 
-@Model('users', '用户资源（RBAC系统）')
+@Model('user', '用户资源（RBAC系统）')
 @Index(['wechatOpenId'])
 @Index(['wechatUnionId'])
 export class User {
@@ -48,7 +48,7 @@ export class User {
 
   @ManyToMany('Role', {
     junctionTable: 'UserRole',
-    mapName: 'user_roles',
+    mapName: 'user_role',
   })
   roles: any[];
 }

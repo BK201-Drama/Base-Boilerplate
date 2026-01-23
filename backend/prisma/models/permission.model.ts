@@ -5,7 +5,7 @@
 
 import { Model, Field, ManyToMany } from '@/common/generator/decorators';
 
-@Model('permissions', '权限资源（RBAC系统）')
+@Model('permission', '权限资源（RBAC系统）')
 export class Permission {
   @Field('String', { unique: true, description: '权限名称' })
   name: string;
@@ -24,7 +24,7 @@ export class Permission {
 
   @ManyToMany('Role', {
     junctionTable: 'RolePermission',
-    mapName: 'role_permissions',
+    mapName: 'role_permission',
   })
   roles: any[];
 }

@@ -4,7 +4,7 @@
 
 import { Model, Field, ManyToOne, Index } from '@/common/generator/decorators';
 
-@Model('operation_logs', '操作日志')
+@Model('operation_log', '操作日志')
 @Index(['userId']) // 外键索引（也可以省略，会自动添加）
 @Index(['createdAt'])
 export class OperationLog {
