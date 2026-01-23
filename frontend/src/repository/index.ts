@@ -20,3 +20,7 @@ export const realRepository: Repository = {
 
 // 导出类型
 export type { DataRepository, AuthRepository };
+
+// 导出单独的 repository（用于需要单独使用的情况）
+export { authRepository } from './auth.repository';
+export { dataRepository } from './data.repository';

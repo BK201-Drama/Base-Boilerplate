@@ -23,10 +23,12 @@ export const Login = () => {
       }}
       title={<LoginTitle />}
       renderContent={(content) => (
-        <div>
+        <div className="relative">
           {content}
           {isEnabled && (
-            <WechatLoginButton loading={loading} onClick={handleWechatLogin} />
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <WechatLoginButton loading={loading} onClick={handleWechatLogin} />
+            </div>
           )}
         </div>
       )}
