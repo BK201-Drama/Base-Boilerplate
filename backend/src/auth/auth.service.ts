@@ -191,7 +191,16 @@ export class AuthService {
 
     try {
       const response = await firstValueFrom(
-        this.httpService.get(
+        this.httpService.get<{
+          access_token: string;
+          expires_in: number;
+          refresh_token: string;
+          openid: string;
+          scope: string;
+          unionid?: string;
+          errcode?: number;
+          errmsg?: string;
+        }>(
           `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code`,
         ),
       );
@@ -232,7 +241,19 @@ export class AuthService {
   }> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(
+        this.httpService.get<{
+          openid: string;
+          nickname: string;
+          sex: number;
+          province: string;
+          city: string;
+          country: string;
+          headimgurl: string;
+          privilege: string[];
+          unionid?: string;
+          errcode?: number;
+          errmsg?: string;
+        }>(
           `https://api.weixin.qq.com/sns/userinfo?access_token=${accessToken}&openid=${openid}&lang=zh_CN`,
         ),
       );
