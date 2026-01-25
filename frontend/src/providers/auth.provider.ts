@@ -7,6 +7,7 @@
 import type { AuthProvider } from '@refinedev/core';
 import i18n from '../i18n';
 import type { Repository } from '@/repository';
+import { HttpStatusCode } from '@/http/constants';
 
 // 创建 Provider 工厂函数
 export const createAuthProvider = (repository: Repository): AuthProvider => {
@@ -24,7 +25,6 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
           };
         }
 
-        // 如果没有结果，抛出错误
         const error = new Error(i18n.t('auth.loginFailedCheck'));
         (error as any).name = 'LoginError';
         throw error;
@@ -85,7 +85,7 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
 
   onError: async (error) => {
     const token = localStorage.getItem('token');
-    if ((error.status === 401 || error.status === 403) && token) {
+    if (error.status === HttpStatusCode.UNAUTHORIZED && token) {
       return {
         logout: true,
         redirectTo: '/login',
@@ -93,7 +93,6 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
       };
     }
 
-    // 其他错误（包括登录失败的错误）直接返回，让调用方处理
     return { error };
   },
 
@@ -150,7 +149,6 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
           },
         };
       } catch (error: any) {
-        // 提取错误消息，支持数组格式
         let errorMessage = error.message || i18n.t('auth.registerFailed');
         
         if (error.response?.data?.message) {

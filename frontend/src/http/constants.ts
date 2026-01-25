@@ -46,8 +46,11 @@ export type HttpStatusCodeType = typeof HttpStatusCode[keyof typeof HttpStatusCo
 
 /**
  * 需要触发登出的状态码
+ * 
+ * 注意：
+ * - 401 (UNAUTHORIZED): 未认证，需要登出并重定向到登录页
+ * - 403 (FORBIDDEN): 已认证但权限不足，不应该登出，应该显示错误提示
  */
 export const AUTH_ERROR_STATUS_CODES = [
   HttpStatusCode.UNAUTHORIZED,
-  HttpStatusCode.FORBIDDEN,
 ] as const;
