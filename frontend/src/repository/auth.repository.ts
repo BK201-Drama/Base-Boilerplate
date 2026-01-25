@@ -21,14 +21,19 @@ export interface AuthRepository {
 export const authRepository: AuthRepository = {
   // 认证相关方法
   login: async (username: string, password: string) => {
-    const response = await httpClient.post('/auth/login', { username, password });
-    if (response.data.access_token) {
-      return {
-        access_token: response.data.access_token,
-        user: response.data.user,
-      };
+    try {
+      const response = await httpClient.post('/auth/login', { username, password });
+      if (response.data.access_token) {
+        return {
+          access_token: response.data.access_token,
+          user: response.data.user,
+        };
+      }
+      return null;
+    } catch (error: any) {
+      // 重新抛出错误，让 authProvider 处理
+      throw error;
     }
-    return null;
   },
 
   logout: async () => {
@@ -51,8 +56,8 @@ export const authRepository: AuthRepository = {
     try {
       const response = await httpClient.post('/auth/register', data);
       return !!response.data;
-    } catch {
-      return false;
+    } catch (error: any) {
+      throw error;
     }
   },
 
@@ -75,8 +80,9 @@ export const authRepository: AuthRepository = {
       }
       const response = await httpClient.get(`/auth/wechat/auth-url?${params.toString()}`);
       return response.data.authUrl;
-    } catch {
-      throw new Error('Failed to get WeChat auth URL');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to get WeChat auth URL';
+      throw new Error(errorMessage);
     }
   },
 
@@ -90,8 +96,8 @@ export const authRepository: AuthRepository = {
         };
       }
       return null;
-    } catch {
-      return null;
+    } catch (error: any) {
+      throw error;
     }
   },
 };

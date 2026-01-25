@@ -22,11 +22,11 @@ export const WechatLoginButton = ({ loading, onClick }: WechatLoginButtonProps) 
       <Button
         type="primary"
         shape="circle"
-        icon={<WechatOutlined />}
+        icon={<WechatOutlined className="!text-2xl" />}
         onClick={onClick}
         loading={loading}
         size="large"
-        className="!w-14 !h-14 !bg-[#07c160] !border-[#07c160] text-2xl flex items-center justify-center hover:!bg-[#06ad56] hover:!border-[#06ad56]"
+        className="!w-14 !h-14 !bg-[#07c160] !border-[#07c160] hover:!bg-[#06ad56] hover:!border-[#06ad56]"
       />
     </div>
   );

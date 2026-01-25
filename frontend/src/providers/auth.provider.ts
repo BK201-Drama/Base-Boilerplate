@@ -24,21 +24,22 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
           };
         }
 
-        return {
-          success: false,
-          error: {
-            name: 'LoginError',
-            message: i18n.t('auth.loginFailedCheck'),
-          },
-        };
+        // 如果没有结果，抛出错误
+        const error = new Error(i18n.t('auth.loginFailedCheck'));
+        (error as any).name = 'LoginError';
+        throw error;
       } catch (error: any) {
-        return {
-          success: false,
-          error: {
-            name: 'LoginError',
-            message: error.response?.data?.message || i18n.t('auth.loginFailed'),
-          },
-        };
+        let errorMessage = error.message || i18n.t('auth.loginFailed');
+        
+        if (error.response?.data?.message) {
+          const message = error.response.data.message;
+          errorMessage = Array.isArray(message) ? message.join(', ') : message;
+        }
+        
+        const loginError = new Error(errorMessage);
+        (loginError as any).name = 'LoginError';
+        (loginError as any).response = error.response;
+        throw loginError;
       }
     },
 
@@ -83,7 +84,8 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
     },
 
   onError: async (error) => {
-    if (error.status === 401 || error.status === 403) {
+    const token = localStorage.getItem('token');
+    if ((error.status === 401 || error.status === 403) && token) {
       return {
         logout: true,
         redirectTo: '/login',
@@ -91,6 +93,7 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
       };
     }
 
+    // 其他错误（包括登录失败的错误）直接返回，让调用方处理
     return { error };
   },
 
@@ -147,11 +150,19 @@ export const createAuthProvider = (repository: Repository): AuthProvider => {
           },
         };
       } catch (error: any) {
+        // 提取错误消息，支持数组格式
+        let errorMessage = error.message || i18n.t('auth.registerFailed');
+        
+        if (error.response?.data?.message) {
+          const message = error.response.data.message;
+          errorMessage = Array.isArray(message) ? message.join(', ') : message;
+        }
+        
         return {
           success: false,
           error: {
             name: 'RegisterError',
-            message: error.response?.data?.message || i18n.t('auth.registerFailed'),
+            message: errorMessage,
           },
         };
       }

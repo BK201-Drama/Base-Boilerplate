@@ -10,9 +10,13 @@ export const LoginTitle = () => {
   const locale = i18n.language === 'en' ? 'en' : 'zh';
 
   return (
-    <div className="text-center mb-6">
-      <h1>{projectInfo.name[locale]}</h1>
-      <p>{projectInfo.welcome[locale]}</p>
+    <div className="text-center mb-8">
+      <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+        {projectInfo.name[locale]}
+      </h1>
+      <p className="text-sm text-gray-500">
+        {projectInfo.welcome[locale]}
+      </p>
     </div>
   );
 };

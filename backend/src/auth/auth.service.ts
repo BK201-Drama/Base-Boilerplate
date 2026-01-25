@@ -41,20 +41,20 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         this.i18n.t('auth.username_or_password_error'),
       );
     }
 
     if (!user.password) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         this.i18n.t('auth.username_or_password_error'),
       );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         this.i18n.t('auth.username_or_password_error'),
       );
     }
