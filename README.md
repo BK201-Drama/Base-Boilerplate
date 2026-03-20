@@ -174,6 +174,11 @@ async createUser() {
 
 ## API 接口
 
+### 系统接口
+
+- `GET /api` - 基础连通性检查
+- `GET /api/health` - 健康检查（含数据库可用性）
+
 ### 认证接口
 
 - `POST /api/auth/login` - 用户登录
@@ -249,6 +254,19 @@ async publicEndpoint() {
 2. 配置正确的数据库连接
 3. 设置合适的文件上传大小限制
 4. 配置 CORS 允许的前端域名
+
+## 工程化优化（本次新增）
+
+- ✅ 新增 GitHub Actions CI：前后端分别执行 `lint + build`
+- ✅ 新增后端健康检查接口：`GET /api/health`
+- ✅ 健康检查返回 `status/db/timestamp/uptimeSec`，便于部署监控
+
+## 下一步建议优化点
+
+- [ ] 增加 `docker-compose` 一键本地启动（postgres + backend + frontend）
+- [ ] 增加 Playwright / e2e 冒烟测试
+- [ ] 引入 OpenAPI 自动生成前端 API 类型
+- [ ] 增加提交规范（commitlint + release-please）
 
 ## 许可证
 
