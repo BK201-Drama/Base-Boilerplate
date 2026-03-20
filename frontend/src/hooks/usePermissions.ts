@@ -44,7 +44,7 @@ export interface UsePermissionsResult {
  * ```
  */
 export const usePermissions = (): UsePermissionsResult => {
-  const { data: permissions = [], isLoading } = useRefinePermissions<string[]>();
+  const { data: permissions = [], isLoading } = useRefinePermissions<string[]>({});
 
   // 检查单个权限
   const hasPermission = useCallback(

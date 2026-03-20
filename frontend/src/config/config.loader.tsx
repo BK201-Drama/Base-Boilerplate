@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Route } from 'react-router-dom';
-import type { TFunction } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { routes, menu, projectInfo } from './project.config';
 import { getComponent } from './component.registry';
 import type { RouteConfig } from './types';

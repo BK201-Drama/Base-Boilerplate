@@ -67,4 +67,22 @@ export const authMockRepository: AuthRepository = {
     }
     return null;
   },
+
+  getWechatAuthUrl: async (redirectUri: string, state?: string) => {
+    await delay(150);
+    const params = new URLSearchParams({
+      redirect_uri: redirectUri,
+      state: state || 'mock-state',
+    });
+    return `https://mock.wechat.local/oauth?${params.toString()}`;
+  },
+
+  wechatLogin: async (code: string) => {
+    await delay(300);
+    if (!code) return null;
+    return {
+      access_token: mockToken,
+      user: mockUser,
+    };
+  },
 };

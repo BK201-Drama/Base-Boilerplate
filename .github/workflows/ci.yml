@@ -19,9 +19,10 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
+      - run: DATABASE_URL='postgresql://postgres:postgres@localhost:5432/base_boilerplate?schema=public' npx prisma generate
       - run: DATABASE_URL='postgresql://postgres:postgres@localhost:5432/base_boilerplate?schema=public' npx prisma validate
       # TODO: re-enable strict lint gate after template-wide lint debt cleanup
-      - run: npm run build
+      - run: DATABASE_URL='postgresql://postgres:postgres@localhost:5432/base_boilerplate?schema=public' npm run build
 
   frontend:
     runs-on: ubuntu-latest

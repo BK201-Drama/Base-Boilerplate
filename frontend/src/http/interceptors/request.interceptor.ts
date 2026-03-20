@@ -4,7 +4,7 @@
  * 在发送请求前添加 token 到请求头
  */
 
-import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import type { InternalAxiosRequestConfig } from 'axios';
 
 export const requestInterceptor = {
   onFulfilled: (config: InternalAxiosRequestConfig) => {
