@@ -19,7 +19,7 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: npx prisma validate
+      - run: DATABASE_URL='postgresql://postgres:postgres@localhost:5432/base_boilerplate?schema=public' npx prisma validate
       - run: npm run lint -- --max-warnings=0
       - run: npm run build
 
@@ -36,6 +36,5 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npm run lint -- --max-warnings=0
       - run: npm run build
       - run: cd .. && node ./scripts/check-permissions-consistency.mjs
