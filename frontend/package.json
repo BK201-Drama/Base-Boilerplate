@@ -13,7 +13,9 @@
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "fix:newlines": "node scripts/fix-trailing-newlines.cjs",
     "preview": "vite preview",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "gen:api-types": "node ./scripts/generate-api-types.mjs",
+    "gen:api-types:local": "OPENAPI_SCHEMA_URL=http://localhost:3000/api/docs-json node ./scripts/generate-api-types.mjs"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
@@ -51,6 +53,7 @@
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "openapi-typescript": "^7.10.1"
   }
 }

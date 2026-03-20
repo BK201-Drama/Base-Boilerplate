@@ -272,6 +272,8 @@ async publicEndpoint() {
 - ✅ 新增 GitHub Actions CI：前后端分别执行 `lint + build`
 - ✅ 新增后端健康检查接口：`GET /api/health`
 - ✅ 健康检查返回 `status/db/timestamp/uptimeSec`，便于部署监控
+- ✅ 新增 OpenAPI 文档：`/api/docs` 与 `/api/docs-json`
+- ✅ 前端支持自动生成 API 类型：`npm run gen:api-types`
 
 ## 下一步建议优化点
 
