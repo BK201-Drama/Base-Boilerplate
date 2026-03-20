@@ -44,6 +44,18 @@ Base-Boilerplate/
 
 ## 快速开始
 
+### Docker 一键启动（推荐）
+
+```bash
+docker compose up -d --build
+```
+
+启动后：
+- 前端：http://localhost:5173
+- 后端：http://localhost:3000/api
+- 健康检查：http://localhost:3000/api/health
+
+
 ### 后端设置
 
 1. 进入后端目录：
