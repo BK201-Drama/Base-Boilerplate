@@ -23,3 +23,6 @@ export * from './interceptors/operation-log.interceptor';
 // 工具类导出
 export * from './utils/excel.util';
 export * from './utils/file.util';
+
+// 权限常量导出
+export * from './permissions';

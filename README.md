@@ -275,11 +275,15 @@ async publicEndpoint() {
 - ✅ 新增 OpenAPI 文档：`/api/docs` 与 `/api/docs-json`
 - ✅ 前端支持自动生成 API 类型：`npm run gen:api-types`
 
+## 权限脚手架（本次新增）
+
+- 后端新增统一权限常量：`backend/src/common/permissions.ts`
+- 前端新增统一权限常量：`frontend/src/constants/permissions.ts`
+- `users/list` 示例已改为 `CanAccess + PERMISSIONS`，避免权限字符串散落
+
 ## 下一步建议优化点
 
-- [ ] 增加 `docker-compose` 一键本地启动（postgres + backend + frontend）
 - [ ] 增加 Playwright / e2e 冒烟测试
-- [ ] 引入 OpenAPI 自动生成前端 API 类型
 - [ ] 增加提交规范（commitlint + release-please）
 
 ## 许可证

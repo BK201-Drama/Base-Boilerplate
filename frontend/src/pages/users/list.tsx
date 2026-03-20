@@ -10,6 +10,8 @@
 import { List, useTable, EditButton, ShowButton, DeleteButton, CreateButton } from '@refinedev/antd';
 import { Table, Space } from 'antd';
 import type { IResourceComponentsProps } from '@refinedev/core';
+import CanAccess from '@/components/auth/CanAccess';
+import { PERMISSIONS } from '@/constants/permissions';
 
 export const UserList: React.FC<IResourceComponentsProps> = () => {
   // useTable hook 自动处理分页、排序、筛选
@@ -29,7 +31,9 @@ export const UserList: React.FC<IResourceComponentsProps> = () => {
       headerButtons={({ defaultButtons }) => (
         <>
           {defaultButtons}
-          <CreateButton />
+          <CanAccess {...PERMISSIONS.USER_CREATE}>
+            <CreateButton />
+          </CanAccess>
         </>
       )}
     >
@@ -59,9 +63,15 @@ export const UserList: React.FC<IResourceComponentsProps> = () => {
           dataIndex="actions"
           render={(_, record: any) => (
             <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
-              <ShowButton hideText size="small" recordItemId={record.id} />
-              <DeleteButton hideText size="small" recordItemId={record.id} />
+              <CanAccess {...PERMISSIONS.USER_UPDATE}>
+                <EditButton hideText size="small" recordItemId={record.id} />
+              </CanAccess>
+              <CanAccess {...PERMISSIONS.USER_READ}>
+                <ShowButton hideText size="small" recordItemId={record.id} />
+              </CanAccess>
+              <CanAccess {...PERMISSIONS.USER_DELETE}>
+                <DeleteButton hideText size="small" recordItemId={record.id} />
+              </CanAccess>
             </Space>
           )}
         />

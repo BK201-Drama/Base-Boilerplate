@@ -14,8 +14,8 @@ import {
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { PermissionsGuard } from '@/common/guards/permissions.guard';
-import { Roles } from '@/common/decorators/roles.decorator';
 import { Permissions } from '@/common/decorators/permissions.decorator';
+import { PERMISSIONS } from '@/common/permissions';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -48,14 +48,14 @@ export class UserController {
   @Post()
   @UseGuards(RolesGuard, PermissionsGuard)
   
-  @Permissions('user:create')
+  @Permissions(PERMISSIONS.USER_CREATE)
   create(@Body() createDto: CreateUserDto) {
     return this.userService.create(createDto);
   }
 
   @Get()
   @UseGuards(RolesGuard, PermissionsGuard)
-  @Permissions('user:read')
+  @Permissions(PERMISSIONS.USER_READ)
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
@@ -65,7 +65,7 @@ export class UserController {
 
   @Get(':id')
   @UseGuards(RolesGuard, PermissionsGuard)
-  @Permissions('user:read')
+  @Permissions(PERMISSIONS.USER_READ)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findOne(id);
   }
@@ -73,15 +73,14 @@ export class UserController {
   @Patch(':id')
   @UseGuards(RolesGuard, PermissionsGuard)
   
-  @Permissions('user:update')
+  @Permissions(PERMISSIONS.USER_UPDATE)
   update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateUserDto) {
     return this.userService.update(id, updateDto);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard, PermissionsGuard)
-  
-  @Permissions('user:delete')
+  @Permissions(PERMISSIONS.USER_DELETE)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.userService.remove(id);
   }
