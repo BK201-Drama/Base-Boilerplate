@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   backend:
@@ -19,6 +19,7 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
+      - run: npx prisma validate
       - run: npm run lint -- --max-warnings=0
       - run: npm run build
 
@@ -37,3 +38,4 @@ jobs:
       - run: npm ci
       - run: npm run lint -- --max-warnings=0
       - run: npm run build
+      - run: cd .. && node ./scripts/check-permissions-consistency.mjs

@@ -275,6 +275,14 @@ async publicEndpoint() {
 - ✅ 新增 OpenAPI 文档：`/api/docs` 与 `/api/docs-json`
 - ✅ 前端支持自动生成 API 类型：`npm run gen:api-types`
 
+## P0 基线（已落地）
+
+- 依赖管理统一为 npm（移除 backend 的 `yarn.lock`）
+- 增加生产环境配置模板：`backend/env.production.example`
+- 后端 CORS 在生产环境改为白名单（通过 `CORS_ORIGINS` 配置）
+- CI 新增 Prisma schema 校验：`npx prisma validate`
+- CI 新增前后端权限常量一致性校验脚本
+
 ## 权限脚手架（本次新增）
 
 - 后端新增统一权限常量：`backend/src/common/permissions.ts`
