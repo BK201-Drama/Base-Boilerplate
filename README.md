@@ -289,6 +289,15 @@ async publicEndpoint() {
 - 前端新增统一权限常量：`frontend/src/constants/permissions.ts`
 - `users/list` 示例已改为 `CanAccess + PERMISSIONS`，避免权限字符串散落
 
+## Vibe Coding 工作流（已配置）
+
+已新增以下文件，可直接用于“非 TDD 的快速交付流程”：
+
+- `VIBE_CODING.md`：主流程（Prototype-first + Contract-first + BDD-lite + Risk-based + Observability）
+- `templates/bdd-scenarios.md`：验收场景模板（Given/When/Then）
+- `templates/risk-matrix.md`：风险分级模板（P0/P1/P2）
+- `templates/observability-checklist.md`：可观测性上线检查清单
+
 ## 下一步建议优化点
 
 - [ ] 增加 Playwright / e2e 冒烟测试
